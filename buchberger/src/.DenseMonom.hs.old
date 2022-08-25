@@ -1,0 +1,58 @@
+{-# LANGUAGE RankNTypes #-}
+
+module DenseMonom (Mon(..)
+                 , format
+                 , fromString
+                 , monMult) where
+
+import Data.List
+import Data.List.Split
+import Data.Char.SScript
+import Data.Char
+
+newtype Mon = Mon {degList :: [Int]} deriving (Eq, Ord)
+
+format :: Mon -> String
+format m = formatSS . concat . snd $ mapAccumL f 1 (degList m)
+    where f n x | x == 0 = (n+1, "")
+                | x == 1 = (n+1, "x_" ++ show n)
+                | otherwise = (n+1, "x_" ++ show n ++ "^" ++ show x)
+
+polyListFromString :: String -> [Int]
+polyListFromString = (foldl f []) . sort . (splitOn "x_") . (filter $ not . isSpace)
+    where f acc s   | s == "" = acc
+                    | length acc + 1 < (digitToInt . head) s = f (acc ++ [0]) s
+                    | '^' `notElem` s = acc ++ [1]
+                    | otherwise = acc ++ [(digitToInt . last) s]
+
+fromString :: String -> Mon
+fromString s = Mon $ polyListFromString s
+
+monMult :: Mon -> Mon -> Mon
+monMult x y = Mon $ zipWith (+) (degList x) (degList y)
+
+--instance Show Monom where
+--    show (Monom m) = formatSS . concat . snd $ mapAccumL f 1 m
+--        where f n x | x == 0 = (n+1, "")
+--                    | x == 1 = (n+1, "x_" ++ show n)
+--                    | otherwise = (n+1, "x_" ++ show n ++ "^" ++ show x)
+
+--instance Read Monom where
+--    readPrec = (foldl f []) . (sortOn head) . (splitOn "x_")
+--        where f acc s   | length acc + 1 < read.head s = 0
+--                        | "^" `notElem` s = 1
+--                        | otherwise = read.last s
+--    readListPrec = readListPrecDefault
+
+--instance Show Monom where
+--    show (Monom m) = concat $ snd $ mapAccumL f 1 m
+--        where f n x | x == 0 = (n+1, "")
+--                    | x == 1 = (n+1, "x" ++ "\x208" ++ show n)
+--                    | otherwise = (n+1, "x" ++ "\x208" ++ show n ++ "^" ++ show x)
+
+--instance Show Monom where
+--    show (Monom (x:xs)) | x == 0 = show (Monom xs)
+--                        | x == 1 = "x" ++ show (Monom xs)
+--                        | otherwise = "x^" ++ show x ++ show (Monom xs)
+--    show (Monom []) = ""
+
