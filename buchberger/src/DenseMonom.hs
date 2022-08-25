@@ -28,7 +28,8 @@ instance Show Mon where
     show = format
 
 lexOrder :: Mon -> Mon -> Ordering
-lexOrder a b = compare (degList a) (degList b)
+lexOrder = mapComp compare degList
+--lexOrder a b = compare (degList a) (degList b)
 
 grlexOrder :: Mon -> Mon -> Ordering
 grlexOrder a b = 
@@ -66,8 +67,8 @@ format m = formatSS . concat . snd $ mapAccumL f 1 (degList m)
                 | x == 1 = (n+1, "x_" ++ show n)
                 | otherwise = (n+1, "x_" ++ show n ++ "^" ++ show x)
 
-polyListFromString :: Int -> String -> [Int]
-polyListFromString n = (rpad n) . (foldl f []) . sort . (splitOn "x_") . (filter $ not . isSpace)
+monListFromString :: Int -> String -> [Int]
+monListFromString n = (rpad n) . (foldl f []) . sort . (splitOn "x_") . (filter $ not . isSpace)
     where f acc s   | s == "" = acc
                     | length acc + 1 < (digitToInt . head) s = f (acc ++ [0]) s
                     | '^' `notElem` s = acc ++ [1]
@@ -77,7 +78,7 @@ rpad :: Int -> [Int] -> [Int]
 rpad m xs = take m $ xs ++ repeat 0
 
 fromString :: String -> Int -> MonOrder -> Mon
-fromString s n o = Mon (polyListFromString n s) o
+fromString s n o = Mon (monListFromString n s) o
 
 monMult :: Mon -> Mon -> Mon
 monMult x y = Mon (mapComp (zipWith (+)) degList x y) (monOrder x)

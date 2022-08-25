@@ -1,6 +1,7 @@
 module Main where
 
 import DenseMonom
+import Polynomial
 
 order = Grevlex
 numVars = 9
