@@ -1,7 +1,9 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
-module Base (Q(..)) where
+module Base (Q(..)
+            , ratFromString) where
 
+import Data.Char (digitToInt)
 import Data.Ratio
 import Control.DeepSeq
 
@@ -16,6 +18,19 @@ instance Show Q where
 
 instance NFData Q where
     rnf (Q a) = rnf a
+
+--fromString :: String -> Q
+--fromString [] = Q $ 1 % 1
+--fromString (x:'/':y:[]) = Q $ (toInteger . digitToInt) x % (toInteger . digitToInt) y
+--fromString (x:[]) = Q $ (toInteger . digitToInt) x % 1
+
+ratFromString :: String -> Q
+ratFromString [] = Q $ 1 % 1
+ratFromString xs = if '/' `elem` xs
+                then Q $ n % d
+                else Q $ read xs % 1
+                where n = read $ takeWhile (/= '/') xs
+                      d = read . tail $ dropWhile (/= '/') xs
 
 numeratorQ (Q x) = Data.Ratio.numerator x
 denominatorQ (Q x) = Data.Ratio.denominator x

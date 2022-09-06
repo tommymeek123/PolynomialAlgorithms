@@ -3,8 +3,7 @@
 module DenseMonom (Mon(..)
                  , MonOrder(..)
                  , totalMonDeg
-                 , format
-                 , fromString
+                 , monFromString
                  , monMult) where
 
 import Data.List
@@ -15,8 +14,8 @@ import Debug.Trace
 
 data MonOrder = Lex | Grlex | Grevlex deriving (Eq, Show)
 
-data Mon = Mon { degList :: [Int]
-               , monOrder :: MonOrder
+data Mon = Mon { monOrder :: MonOrder
+               , degList :: [Int]
                } deriving (Eq)
 
 instance Ord Mon where
@@ -29,21 +28,20 @@ instance Show Mon where
 
 lexOrder :: Mon -> Mon -> Ordering
 lexOrder = mapComp compare degList
---lexOrder a b = compare (degList a) (degList b)
 
 grlexOrder :: Mon -> Mon -> Ordering
-grlexOrder a b = 
+grlexOrder a b =
     let aVb = compare (totalMonDeg a) (totalMonDeg b)
     in  if aVb == EQ
         then lexOrder a b
         else aVb
 
 grevlexOrder :: Mon -> Mon -> Ordering
-grevlexOrder a b = 
+grevlexOrder a b =
     let aVb = compare (totalMonDeg a) (totalMonDeg b)
         degDiff = zipWith (-) (degList a) (degList b)
     in  if aVb == EQ
-        then (compare 0) . headOrZero . dropWhile (==0) . reverse $ degDiff
+        then compare 0 . headOrZero . dropWhile (==0) . reverse $ degDiff
         else aVb
 
 --degDiff :: Mon -> Mon -> [Int]
@@ -68,7 +66,7 @@ format m = formatSS . concat . snd $ mapAccumL f 1 (degList m)
                 | otherwise = (n+1, "x_" ++ show n ++ "^" ++ show x)
 
 monListFromString :: Int -> String -> [Int]
-monListFromString n = (rpad n) . (foldl f []) . sort . (splitOn "x_") . (filter $ not . isSpace)
+monListFromString n = rpad n . foldl f [] . sort . splitOn "x_" . filter (not . isSpace)
     where f acc s   | s == "" = acc
                     | length acc + 1 < (digitToInt . head) s = f (acc ++ [0]) s
                     | '^' `notElem` s = acc ++ [1]
@@ -77,13 +75,11 @@ monListFromString n = (rpad n) . (foldl f []) . sort . (splitOn "x_") . (filter 
 rpad :: Int -> [Int] -> [Int]
 rpad m xs = take m $ xs ++ repeat 0
 
-fromString :: String -> Int -> MonOrder -> Mon
-fromString s n o = Mon (monListFromString n s) o
+monFromString :: MonOrder -> Int -> String -> Mon
+monFromString o n s = Mon o $ monListFromString n s
 
 monMult :: Mon -> Mon -> Mon
-monMult x y = Mon (mapComp (zipWith (+)) degList x y) (monOrder x)
---monMult x y = Mon (zipWith (+) (degList x) (degList y)) (monOrder x)
+monMult x y = Mon (monOrder x) (zipWith (+) (degList x) (degList y))
 
 mapComp :: (k -> k -> b) -> (a -> k) -> a -> a -> b
 mapComp g h x y = g (h x) (h y)
-
