@@ -6,6 +6,10 @@ module Base (Q(..)
 import Data.Char (digitToInt)
 import Data.Ratio
 import Control.DeepSeq
+import Text.Read
+
+--class (Num k, Show k, Read k) => Field k where
+--(/) :: k -> k -> k
 
 -- |Q is just the rationals, but with a better show function than in Prelude.
 newtype Q = Q Rational deriving (Eq,Ord,Num,Fractional)
@@ -15,6 +19,9 @@ instance Show Q where
                | otherwise = show a ++ "/" ++ show b
                where a = numerator x
                      b = denominator x
+
+--instance Read Q where
+--    readPrec = ratFromString
 
 instance NFData Q where
     rnf (Q a) = rnf a

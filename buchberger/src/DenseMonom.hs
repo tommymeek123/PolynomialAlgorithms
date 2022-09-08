@@ -4,11 +4,12 @@ module DenseMonom (Mon(..)
                  , MonOrder(..)
                  , totalMonDeg
                  , monFromString
+                 , monFormat
                  , monMult) where
 
 import Data.List
 import Data.List.Split
-import Data.Char.SScript
+import Data.Char.SScript (formatSS)
 import Data.Char
 import Debug.Trace
 
@@ -24,7 +25,13 @@ instance Ord Mon where
                                      Grevlex -> grevlexOrder a b
 
 instance Show Mon where
-    show = format
+    show m = concat . snd $ mapAccumL f 1 (degList m)
+        where f n x | x == 0 = (n+1, "")
+                    | x == 1 = (n+1, "x_" ++ show n)
+                    | otherwise = (n+1, "x_" ++ show n ++ "^" ++ show x)
+
+monFormat :: Mon -> String
+monFormat = formatSS . show
 
 lexOrder :: Mon -> Mon -> Ordering
 lexOrder = mapComp compare degList
@@ -58,12 +65,6 @@ headOrZero xs = head xs
 
 totalMonDeg :: Mon -> Int
 totalMonDeg = sum . degList
-
-format :: Mon -> String
-format m = formatSS . concat . snd $ mapAccumL f 1 (degList m)
-    where f n x | x == 0 = (n+1, "")
-                | x == 1 = (n+1, "x_" ++ show n)
-                | otherwise = (n+1, "x_" ++ show n ++ "^" ++ show x)
 
 monListFromString :: Int -> String -> [Int]
 monListFromString n = rpad n . foldl f [] . sort . splitOn "x_" . filter (not . isSpace)

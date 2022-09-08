@@ -2,6 +2,7 @@ module Polynomial (Poly(..)
                  , isZero
                  , leadMonom
                  , leadCoef
+                 , format
                  , fromString) where
 
 import Data.List
@@ -40,7 +41,7 @@ instance Show Poly where
 
 format :: Poly -> String
 format = intercalate " + "
-        . map (\(k,v) -> show v ++ show k)
+        . map (\(k,v) -> show v ++ monFormat k)
         . Map.assocs
         . monMap
 
