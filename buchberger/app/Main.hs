@@ -3,6 +3,8 @@ module Main where
 import DenseMonom
 import Polynomial
 
+type PolyRingParameters = (String,String,String)
+
 order = Grlex
 numVars = 9
 
