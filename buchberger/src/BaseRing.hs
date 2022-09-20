@@ -1,6 +1,9 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE DeriveAnyClass #-}
 
-module BaseRing (fromString) where
+module BaseRing ( Field(..)
+                , fromString
+                ) where
 
 import Data.Char (digitToInt)
 import Data.Ratio
@@ -25,8 +28,8 @@ instance Show Field where
 --    rnf (Q a) = rnf a
 
 fromString :: RingParams.RingParams -> String -> Field
-fromString r = case field r of RingParams.Q -> ratFromString
-                               RingParams.Fp -> fpFromString
+fromString r = case RingParams.field r of RingParams.Q  -> ratFromString
+                                          RingParams.Fp -> fpFromString
 
 ratFromString :: String -> Field
 ratFromString [] = Q $ 1 % 1
@@ -37,4 +40,4 @@ ratFromString xs = if '/' `elem` xs
                       d = read . tail $ dropWhile (/= '/') xs
 
 fpFromString :: String -> Field
-fpFromString = Fp
+fpFromString = \_ -> Fp

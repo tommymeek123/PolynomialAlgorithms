@@ -1,16 +1,17 @@
 {-# LANGUAGE RankNTypes #-}
 
-module DenseMonom (Mon(..)
-                 , MonOrder(..)
-                 , totalDeg
-                 , fromString
-                 , format
-                 , monMult) where
+module DenseMonom ( Mon(..)
+                  , MonOrder(..)
+                  , totalDeg
+                  , fromString
+                  , format
+                  , monMult
+                  ) where
 
 import Data.List
 import Data.List.Split
 import Data.Char.SScript (formatSS)
-import Data.Char
+import Data.Char (digitToInt, isSpace)
 import Debug.Trace
 import RingParams
 
@@ -19,8 +20,8 @@ data Mon = Mon { order :: MonOrder
                } deriving (Eq)
 
 instance Ord Mon where
-    compare a b = case order a of Lex -> lexOrder a b
-                                  Grlex -> grlexOrder a b
+    compare a b = case order a of Lex     -> lexOrder a b
+                                  Grlex   -> grlexOrder a b
                                   Grevlex -> grevlexOrder a b
 
 lexOrder :: Mon -> Mon -> Ordering

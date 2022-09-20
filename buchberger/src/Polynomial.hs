@@ -1,30 +1,31 @@
-module Polynomial (Poly(..)
-                 , isZero
-                 , leadMonom
-                 , leadCoef
-                 , format
-                 , fromString) where
+module Polynomial ( Poly(..)
+                  , isZero
+                  , leadMonom
+                  , leadCoef
+                  , format
+                  , fromString
+                  ) where
 
 import Data.List
 import Data.List.Split
 import Data.Char.SScript (formatSS)
-import Data.Char
+import Data.Char (digitToInt, isSpace)
 import Data.Tuple (swap)
 import qualified Data.Map as Map
-import qualified BaseRing
-import qualified DenseMonom as Monom
+import qualified BaseRing as BR
+import qualified DenseMonom as M
+import qualified RingParams as RP
 import Debug.Trace
-import RingParams
 
-data Poly = Poly { monMap :: Map.Map Mon Field } deriving (Eq)
+data Poly = Poly { monMap :: Map.Map M.Mon BR.Field } deriving (Eq)
 
 isZero :: Poly -> Bool
 isZero = Map.null . monMap
 
-leadMonom :: Poly -> Maybe Mon
+leadMonom :: Poly -> Maybe M.Mon
 leadMonom = fmap fst . Map.lookupMax . monMap
 
-leadCoef :: Poly -> Maybe Field
+leadCoef :: Poly -> Maybe BR.Field
 leadCoef = fmap snd . Map.lookupMax . monMap
 
 --leadTerm :: Poly -> Maybe Poly
@@ -37,24 +38,24 @@ leadCoef = fmap snd . Map.lookupMax . monMap
 
 instance Show Poly where
     show = intercalate " + "
-          . map (\(k,v) -> BaseRing.show v ++ Monom.show k)
-          . Map.assocs
-          . monMap
+         . map (\(k,v) -> show v ++ show k)
+         . Map.assocs
+         . monMap
 
 format :: Poly -> String
 format = formatSS . show
 
-mapFromString :: RingParams -> String -> Map.Map Mon Field
+mapFromString :: RP.RingParams -> String -> Map.Map M.Mon BR.Field
 mapFromString r = Map.fromList
-                 . map (\(ks,vs) -> (Monom.fromString r ks, BaseRing.fromString r vs))
-                 . map (swap . break (=='x'))
-                 . filter (not . null)
-                 . splitOn "+"
-                 . intercalate "+-"
-                 . splitOn "-"
-                 . filter (not . isSpace)
+                . map (\(ks,vs) -> (M.fromString r ks, BR.fromString r vs))
+                . map (swap . break (=='x'))
+                . splitOn "+" -- Make a list of terms
+                . intercalate "+-"
+                . filter (not . null)
+                . splitOn "-" -- This handles subtraction
+                . filter (not . isSpace)
 
-fromString :: RingParams -> String -> Poly
+fromString :: RP.RingParams -> String -> Poly
 fromString r s = Poly $ mapFromString r s
 
 --format :: Poly -> String
