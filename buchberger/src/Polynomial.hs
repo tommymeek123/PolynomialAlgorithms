@@ -1,13 +1,14 @@
 module Polynomial ( Poly(..)
-                  , isZero
-                  , leadMonom
-                  , leadCoef
                   , format
                   , fromString
+                  , isZero
+                  , leadCoef
+                  , leadMonom
+                  , leadMonomF
                   ) where
 
-import Data.List
-import Data.List.Split
+import Data.List (intercalate)
+import Data.List.Split (splitOn)
 import Data.Char.SScript (formatSS)
 import Data.Char (digitToInt, isSpace)
 import Data.Tuple (swap)
@@ -15,26 +16,8 @@ import qualified Data.Map as Map
 import qualified BaseRing as BR
 import qualified DenseMonom as M
 import qualified RingParams as RP
-import Debug.Trace
 
 data Poly = Poly { monMap :: Map.Map M.Mon BR.Field } deriving (Eq)
-
-isZero :: Poly -> Bool
-isZero = Map.null . monMap
-
-leadMonom :: Poly -> Maybe M.Mon
-leadMonom = fmap fst . Map.lookupMax . monMap
-
-leadCoef :: Poly -> Maybe BR.Field
-leadCoef = fmap snd . Map.lookupMax . monMap
-
---leadTerm :: Poly -> Maybe Poly
---
---totalPolyDegree :: Poly -> Maybe Int
---
---polyAdd :: Poly -> Poly -> Poly
---
---polyMult :: Poly -> Poly -> Poly
 
 instance Show Poly where
     show = intercalate " + "
@@ -45,6 +28,29 @@ instance Show Poly where
 format :: Poly -> String
 format = formatSS . show
 
+fromString :: RP.RingParams -> String -> Poly
+fromString r s = Poly $ mapFromString r s
+
+isZero :: Poly -> Bool
+isZero = Map.null . monMap
+
+leadMonom :: Poly -> Maybe M.Mon
+leadMonom = fmap fst . Map.lookupMax . monMap
+
+leadMonomF :: Poly -> String
+leadMonomF = formatSS . show . leadMonom
+
+leadCoef :: Poly -> Maybe BR.Field
+leadCoef = fmap snd . Map.lookupMax . monMap
+
+--leadTerm :: Poly -> Maybe Poly
+
+--totalPolyDegree :: Poly -> Maybe Int
+
+--add :: Poly -> Poly -> Poly
+
+--mult :: Poly -> Poly -> Poly
+
 mapFromString :: RP.RingParams -> String -> Map.Map M.Mon BR.Field
 mapFromString r = Map.fromList
                 . map (\(ks,vs) -> (M.fromString r ks, BR.fromString r vs))
@@ -54,19 +60,6 @@ mapFromString r = Map.fromList
                 . filter (not . null)
                 . splitOn "-" -- This handles subtraction
                 . filter (not . isSpace)
-
-fromString :: RP.RingParams -> String -> Poly
-fromString r s = Poly $ mapFromString r s
-
---format :: Poly -> String
-
---leadMonom :: Poly -> Maybe Mon
---leadMonom p
---    | isZero p = Nothing
---    | otherwise = Just $ (Map.findMax . monMap) p
-
---leadCoef :: Poly -> Maybe Q
---leadCoef p = leadMonom >>= flip lookup (monMap p)
 
 --leadTerm :: Poly -> Poly
 --leadTerm p

@@ -3,7 +3,7 @@ module Main where
 import Polynomial
 import RingParams
 
-params = RingParams {field=Q, monOrder=Grlex, numVars=9}
+params = RingParams {field=Fp, order=Grlex, numVars=9}
 
 main :: IO ()
 main = do
@@ -18,3 +18,4 @@ main = do
     print g
     print $ leadCoef h
     print $ leadMonom h
+    putStrLn $ leadMonomF h
