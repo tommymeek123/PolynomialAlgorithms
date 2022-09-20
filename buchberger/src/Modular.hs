@@ -4,6 +4,8 @@
 {-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE UndecidableInstances #-}
 
+module Modular where
+
 import Data.Proxy      (Proxy(Proxy))
 import Data.Reflection (Reifies, reflect, reify)
 
@@ -29,6 +31,6 @@ withModulus m v = Data.Reflection.reify m (getModulus . asProxyOf v)
    asProxyOf :: f s -> Proxy s -> f s
    asProxyOf = const
 
-type FinFieldElt = (forall s. Modular s => Modulus s)
-foo :: FinFieldElt
-foo = 1000 * 1000 * 5 + 2000
+--type FinFieldElt = (forall s. Modular s => Modulus s)
+--foo :: FinFieldElt
+--foo = 1000 * 1000 * 5 + 2000

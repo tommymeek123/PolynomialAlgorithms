@@ -7,15 +7,14 @@ module Polynomial (Poly(..)
 
 import Data.List
 import Data.List.Split
+import Data.Char.SScript (formatSS)
 import Data.Char
 import Data.Tuple (swap)
 import qualified Data.Map as Map
-import qualified Base
-import DenseMonom as Monom
+import qualified BaseRing
+import qualified DenseMonom as Monom
 import Debug.Trace
-
-type Field = Base.Q
-baseFromString = Base.ratFromString
+import RingParams
 
 data Poly = Poly { monMap :: Map.Map Mon Field } deriving (Eq)
 
@@ -37,26 +36,26 @@ leadCoef = fmap snd . Map.lookupMax . monMap
 --polyMult :: Poly -> Poly -> Poly
 
 instance Show Poly where
-    show = format
+    show = intercalate " + "
+          . map (\(k,v) -> BaseRing.show v ++ Monom.show k)
+          . Map.assocs
+          . monMap
 
 format :: Poly -> String
-format = intercalate " + "
-        . map (\(k,v) -> show v ++ monFormat k)
-        . Map.assocs
-        . monMap
+format = formatSS . show
 
-mapFromString :: MonOrder -> Int -> String -> Map.Map Mon Field
-mapFromString o n = Map.fromList
-                        . map (\(ks,vs) -> (monFromString o n ks, baseFromString vs))
-                        . map (swap . break (=='x'))
-                        . filter (not . null)
-                        . splitOn "+"
-                        . intercalate "+-"
-                        . splitOn "-"
-                        . filter (not . isSpace)
+mapFromString :: RingParams -> String -> Map.Map Mon Field
+mapFromString r = Map.fromList
+                 . map (\(ks,vs) -> (Monom.fromString r ks, BaseRing.fromString r vs))
+                 . map (swap . break (=='x'))
+                 . filter (not . null)
+                 . splitOn "+"
+                 . intercalate "+-"
+                 . splitOn "-"
+                 . filter (not . isSpace)
 
-fromString :: MonOrder -> Int -> String -> Poly
-fromString o n s = Poly $ mapFromString o n s
+fromString :: RingParams -> String -> Poly
+fromString r s = Poly $ mapFromString r s
 
 --format :: Poly -> String
 

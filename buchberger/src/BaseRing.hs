@@ -6,6 +6,9 @@ import Data.Char (digitToInt)
 import Data.Ratio
 import Control.DeepSeq
 import Text.Read
+import qualified RingParams
+
+data Field = Q Rational | Fp deriving (Eq,Ord,Num,Fractional)
 
 instance Show Field where
     show (Q r) = if d == 1
@@ -13,21 +16,25 @@ instance Show Field where
                  else show n ++ "/" ++ show d
                  where n = numerator r
                        d = denominator r
-    show (Fp n p) = show (m `mod` p)
+--    show (Fp n p) = show (m `mod` p)
 
 --instance Read Q where
 --    readPrec = ratFromString
 
-instance NFData Q where
-    rnf (Q a) = rnf a
+--instance NFData Q where
+--    rnf (Q a) = rnf a
 
-reduceMod :: Int -> Int -> Int
-n `reduceMod` p = n `mod` p
+fromString :: RingParams.RingParams -> String -> Field
+fromString r = case field r of RingParams.Q -> ratFromString
+                               RingParams.Fp -> fpFromString
 
-ratFromString :: String -> Q
+ratFromString :: String -> Field
 ratFromString [] = Q $ 1 % 1
 ratFromString xs = if '/' `elem` xs
                 then Q $ n % d
                 else Q $ read xs % 1
                 where n = read $ takeWhile (/= '/') xs
                       d = read . tail $ dropWhile (/= '/') xs
+
+fpFromString :: String -> Field
+fpFromString = Fp

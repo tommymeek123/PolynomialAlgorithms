@@ -21,7 +21,7 @@ author:             Frank Moore and Tommy Meek
 extra-source-files: CHANGELOG.md
 
 library
-    exposed-modules:  Base, DenseMonom, Polynomial
+    exposed-modules:  BaseRing, DenseMonom, Modular, Polynomial, RingParams
 
     -- Modules included in this library but not exported.
     -- other-modules:
@@ -31,6 +31,8 @@ library
     build-depends:    base ^>=4.14.3.0
                     , containers
                     , deepseq
+                    , reflection
+                    , proxy
                     , sscript
                     , split
     hs-source-dirs:   src
