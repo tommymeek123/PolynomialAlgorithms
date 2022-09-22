@@ -1,4 +1,5 @@
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module DenseMonom ( Mon(..)
                   , fromString
@@ -8,8 +9,8 @@ module DenseMonom ( Mon(..)
 
 import Data.List (mapAccumL, sort)
 import Data.List.Split (splitOn)
-import Data.Char.SScript (formatSS)
 import Data.Char (digitToInt, isSpace)
+--import Data.Text (split)
 import qualified RingParams as RP
 
 data Mon = Mon { order :: RP.MonOrder
@@ -63,6 +64,17 @@ headOrZero :: [Int] -> Int
 headOrZero [] = 0
 headOrZero xs = head xs
 
+--listFromString :: Int -> String -> [Int]
+--listFromString n = rpad n
+--                 . foldl f []
+--                 . sort
+--                 . splitOn "x_"
+--                 . filter (not . isSpace)
+--    where f acc s | s == "" = acc
+--                  | length acc + 1 < (digitToInt . head) s = f (acc ++ [0]) s
+--                  | '^' `notElem` s = acc ++ [1]
+--                  | otherwise = acc ++ [(digitToInt . last) s]
+
 listFromString :: Int -> String -> [Int]
 listFromString n = rpad n
                  . foldl f []
@@ -70,9 +82,9 @@ listFromString n = rpad n
                  . splitOn "x_"
                  . filter (not . isSpace)
     where f acc s | s == "" = acc
-                  | length acc + 1 < (digitToInt . head) s = f (acc ++ [0]) s
+                  | length acc + 1 < (read . head . splitOn "^") s = f (acc ++ [0]) s
                   | '^' `notElem` s = acc ++ [1]
-                  | otherwise = acc ++ [(digitToInt . last) s]
+                  | otherwise = acc ++ [(read . last . splitOn "^") s]
 
 mapComp :: (k -> k -> b) -> (a -> k) -> a -> a -> b
 mapComp g h x y = g (h x) (h y)

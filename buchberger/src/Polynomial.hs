@@ -1,32 +1,36 @@
 module Polynomial ( Poly(..)
-                  , format
+                  , add
                   , fromString
                   , isZero
                   , leadCoef
                   , leadMonom
-                  , leadMonomF
+                  , leadMonomP
+                  , leadTerm
+                  , totalDegree
                   ) where
 
 import Data.List (intercalate)
 import Data.List.Split (splitOn)
-import Data.Char.SScript (formatSS)
 import Data.Char (digitToInt, isSpace)
 import Data.Tuple (swap)
+import Data.Maybe (isNothing)
+import Control.Monad (liftM2)
+import Data.Composition ((.:))
+import Data.Foldable (maximumBy)
 import qualified Data.Map as Map
-import qualified BaseRing as BR
+import qualified BaseRing as R
 import qualified DenseMonom as M
 import qualified RingParams as RP
 
-data Poly = Poly { monMap :: Map.Map M.Mon BR.Field } deriving (Eq)
+data Poly = Poly { monMap :: Map.Map M.Mon R.Field } deriving (Eq)
 
 instance Show Poly where
-    show = intercalate " + "
-         . map (\(k,v) -> show v ++ show k)
-         . Map.assocs
-         . monMap
-
-format :: Poly -> String
-format = formatSS . show
+    show = let removeOnes s = if head s == '1' then tail s else s
+           in intercalate " + "
+            . map removeOnes
+            . map (\(k,v) -> show v ++ show k)
+            . Map.assocs
+            . monMap
 
 fromString :: RP.RingParams -> String -> Poly
 fromString r s = Poly $ mapFromString r s
@@ -37,23 +41,35 @@ isZero = Map.null . monMap
 leadMonom :: Poly -> Maybe M.Mon
 leadMonom = fmap fst . Map.lookupMax . monMap
 
-leadMonomF :: Poly -> String
-leadMonomF = formatSS . show . leadMonom
+leadMonomP :: Poly -> Maybe Poly
+leadMonomP p = case leadMonom p of
+    Just m -> fmap Just Poly $ Map.singleton m 1
+    Nothing -> Nothing
 
-leadCoef :: Poly -> Maybe BR.Field
+leadCoef :: Poly -> Maybe R.Field
 leadCoef = fmap snd . Map.lookupMax . monMap
 
---leadTerm :: Poly -> Maybe Poly
+leadTerm :: Poly -> Maybe Poly
+leadTerm p = liftM2 (Poly .: Map.singleton) (leadMonom p) (leadCoef p)
 
---totalPolyDegree :: Poly -> Maybe Int
+--totalDegree :: Poly -> Maybe Int
+--totalDegree p = M.totalDeg . fst $ maximumBy f (monMap p)
+--    where f x y = compare ((M.totalDeg . fst) x) ((M.totalDeg . fst) y)
 
---add :: Poly -> Poly -> Poly
+totalDegree :: Poly -> Maybe Int
+totalDegree p = if isZero p
+                then Nothing
+                else Just $ M.totalDeg . maximumBy f . Map.keys . monMap $ p
+                where f x y = compare (M.totalDeg x) (M.totalDeg y)
+
+add :: Poly -> Poly -> Poly
+add p q = Poly $ Map.unionWith (+) (monMap p) (monMap q)
 
 --mult :: Poly -> Poly -> Poly
 
-mapFromString :: RP.RingParams -> String -> Map.Map M.Mon BR.Field
+mapFromString :: RP.RingParams -> String -> Map.Map M.Mon R.Field
 mapFromString r = Map.fromList
-                . map (\(ks,vs) -> (M.fromString r ks, BR.fromString r vs))
+                . map (\(ks,vs) -> (M.fromString r ks, R.fromString r vs))
                 . map (swap . break (=='x'))
                 . splitOn "+" -- Make a list of terms
                 . intercalate "+-"

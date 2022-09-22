@@ -1,16 +1,12 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE DeriveAnyClass #-}
-
 module BaseRing ( Field(..)
                 , fromString
                 ) where
 
-import Data.Char (digitToInt)
 import Data.Ratio ((%), numerator, denominator)
 --import Control.DeepSeq (NFData, rnf)
 import qualified RingParams as RP
 
-data Field = Q Rational | Fp deriving (Eq,Ord,Num,Fractional)
+data Field = Q Rational | Fp deriving (Eq,Ord)
 
 instance Show Field where
     show (Q r) = if d == 1
@@ -22,6 +18,18 @@ instance Show Field where
 
 --instance NFData Field where
 --    rnf (Q a) = rnf a
+
+instance Num Field where
+   (Q r) + (Q s) = Q (r + s)
+   (Q r) - (Q s) = Q (r - s)
+   (Q r) * (Q s) = Q (r * s)
+   abs (Q r)     = Q (abs r)
+   signum (Q r)  = Q (signum r)
+   fromInteger n = Q $ n % 1
+
+instance Fractional Field where
+    recip (Q r) = Q (denominator r % numerator r)
+    fromRational = Q
 
 fromString :: RP.RingParams -> String -> Field
 fromString r = case RP.field r of RP.Q  -> ratFromString
