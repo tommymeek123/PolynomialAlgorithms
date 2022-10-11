@@ -10,7 +10,6 @@ module DenseMonom ( Mon(..)
 import Data.List (mapAccumL, sort)
 import Data.List.Split (splitOn)
 import Data.Char (digitToInt, isSpace)
---import Data.Text (split)
 import qualified RingParams as RP
 
 data Mon = Mon { order :: RP.MonOrder
@@ -63,17 +62,6 @@ totalDeg = sum . degList
 headOrZero :: [Int] -> Int
 headOrZero [] = 0
 headOrZero xs = head xs
-
---listFromString :: Int -> String -> [Int]
---listFromString n = rpad n
---                 . foldl f []
---                 . sort
---                 . splitOn "x_"
---                 . filter (not . isSpace)
---    where f acc s | s == "" = acc
---                  | length acc + 1 < (digitToInt . head) s = f (acc ++ [0]) s
---                  | '^' `notElem` s = acc ++ [1]
---                  | otherwise = acc ++ [(digitToInt . last) s]
 
 listFromString :: Int -> String -> [Int]
 listFromString n = rpad n
