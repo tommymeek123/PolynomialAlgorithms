@@ -22,54 +22,54 @@ import qualified BaseRing as R
 import qualified DenseMonom as M
 import qualified RingParams as RP
 
-data Poly = Poly { monMap :: Map.Map M.Mon R.Field } deriving (Eq)
+data Poly k = Poly { monMap :: Map.Map M.Mon k } deriving (Eq)
 
-instance Show Poly where
+instance (Show k) => Show (Poly k) where
     show = let removeOnes s = if head s == '1' then tail s else s
            in intercalate " + "
             . map removeOnes
-            . map (\(k,v) -> show v ++ show k)
+            . map (\(m,c) -> show c ++ show m)
             . Map.assocs
             . monMap
 
-fromString :: RP.RingParams -> String -> Poly
+fromString :: RP.RingParams -> String -> Poly k
 fromString r s = Poly $ mapFromString r s
 
-isZero :: Poly -> Bool
+isZero :: Poly k -> Bool
 isZero = Map.null . monMap
 
-leadMonom :: Poly -> Maybe M.Mon
+leadMonom :: Poly k -> Maybe M.Mon
 leadMonom = fmap fst . Map.lookupMax . monMap
 
-leadMonomP :: Poly -> Maybe Poly
+leadMonomP :: Poly k -> Maybe (Poly k)
 leadMonomP p = case leadMonom p of
     Just m -> fmap Just Poly $ Map.singleton m 1
     Nothing -> Nothing
 
-leadCoef :: Poly -> Maybe R.Field
+leadCoef :: Poly k -> Maybe k
 leadCoef = fmap snd . Map.lookupMax . monMap
 
-leadTerm :: Poly -> Maybe Poly
+leadTerm :: Poly k -> Maybe (Poly k)
 leadTerm p = liftM2 (Poly .: Map.singleton) (leadMonom p) (leadCoef p)
 
 --totalDegree :: Poly -> Maybe Int
 --totalDegree p = M.totalDeg . fst $ maximumBy f (monMap p)
 --    where f x y = compare ((M.totalDeg . fst) x) ((M.totalDeg . fst) y)
 
-totalDegree :: Poly -> Maybe Int
+totalDegree :: Poly k -> Maybe Int
 totalDegree p = if isZero p
                 then Nothing
                 else Just $ M.totalDeg . maximumBy f . Map.keys . monMap $ p
                 where f x y = compare (M.totalDeg x) (M.totalDeg y)
 
-add :: Poly -> Poly -> Poly
+add :: Poly k -> Poly k -> Poly k
 add p q = Poly $ Map.unionWith (+) (monMap p) (monMap q)
 
 --mult :: Poly -> Poly -> Poly
 
-mapFromString :: RP.RingParams -> String -> Map.Map M.Mon R.Field
+mapFromString :: (R.Readable k) => RP.RingParams -> String -> Map.Map M.Mon k
 mapFromString r = Map.fromList
-                . map (\(ks,vs) -> (M.fromString r ks, R.fromString r vs))
+                . map (\(ms,ks) -> (M.fromString r ms, R.fromString ks))
                 . map (swap . break (=='x'))
                 . splitOn "+" -- Make a list of terms
                 . intercalate "+-"

@@ -48,6 +48,12 @@ instance Show Mon where
                     | x == 1 = (n+1, "x_" ++ show n)
                     | otherwise = (n+1, "x_" ++ show n ++ "^" ++ show x)
 
+instance Semigroup Mon where
+a <> b = mult a b
+
+instance Monoid Mon where
+mempty = Mon
+
 fromString :: RP.RingParams -> String -> Mon
 fromString r s = Mon o $ listFromString n s
     where o = RP.order r
