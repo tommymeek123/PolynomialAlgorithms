@@ -7,6 +7,9 @@ import BaseRing
 
 params = RingParams {field=Q, order=Lex, numVars=30}
 
+--myMonoid = ... (something of type Mon)
+--R = Poly myMonoid Field
+
 main :: IO ()
 main = do
     let fstring = "-4x_3^4 x_2 x_5^2 - 7/2 x_1^2 x_3 x_2^5 x_9^3 + 6 x_2^4 x_5^3 + 9/3 x_4^9x_3^9x_2^9"
