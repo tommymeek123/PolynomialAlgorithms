@@ -22,7 +22,7 @@ import qualified BaseRing as R
 import qualified DenseMonom as M
 import qualified RingParams as RP
 
-data Poly k = Poly { monMap :: Map.Map M.Mon k } deriving (Eq)
+data Poly k n o = Poly { monMap :: Map.Map M.Mon k } deriving (Eq)
 
 instance (Show k) => Show (Poly k) where
     show = let removeOnes s = if head s == '1' then tail s else s

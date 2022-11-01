@@ -11,27 +11,28 @@ import Data.List (mapAccumL, sort)
 import Data.List.Split (splitOn)
 import Data.Char (digitToInt, isSpace)
 import qualified RingParams as RP
+import qualified GHC.TypeNats as TN
 
-data Mon = Mon { order :: RP.MonOrder
-               , degList :: [Int]
-               } deriving (Eq)
+data Mon n o = Mon { numVars :: n
+                   , order :: o
+                   } deriving (Eq)
 
-instance Ord Mon where
+instance Ord Mon n o where
     compare a b = case order a of RP.Lex     -> lexOrder a b
                                   RP.Grlex   -> grlexOrder a b
                                   RP.Grevlex -> grevlexOrder a b
 
-lexOrder :: Mon -> Mon -> Ordering
+lexOrder :: Mon n o -> Mon n o -> Ordering
 lexOrder = mapComp compare degList
 
-grlexOrder :: Mon -> Mon -> Ordering
+grlexOrder :: Mon n o -> Mon n o -> Ordering
 grlexOrder a b =
     let aVb = compare (totalDeg a) (totalDeg b)
     in  if aVb == EQ
         then lexOrder a b
         else aVb
 
-grevlexOrder :: Mon -> Mon -> Ordering
+grevlexOrder :: Mon n o -> Mon n o -> Ordering
 grevlexOrder a b =
     let aVb = compare (totalDeg a) (totalDeg b)
         degDiff = zipWith (-) (degList a) (degList b)
@@ -42,17 +43,20 @@ grevlexOrder a b =
            . reverse $ degDiff
         else aVb
 
-instance Show Mon where
+instance Show Mon n o where
     show m = concat . snd $ mapAccumL f 1 (degList m)
         where f n x | x == 0 = (n+1, "")
                     | x == 1 = (n+1, "x_" ++ show n)
                     | otherwise = (n+1, "x_" ++ show n ++ "^" ++ show x)
 
-instance Semigroup Mon where
+instance Semigroup Mon n o where
 a <> b = mult a b
 
-instance Monoid Mon where
-mempty = Mon
+instance Monoid Mon n o where
+mempty = Mon { order = o, numVars = natVal n }
+
+degList :: Mon n o -> [Int]
+degList = take (natVal n) $ repeat 0
 
 fromString :: RP.RingParams -> String -> Mon
 fromString r s = Mon o $ listFromString n s
@@ -62,7 +66,7 @@ fromString r s = Mon o $ listFromString n s
 mult :: Mon -> Mon -> Mon
 mult x y = Mon (order x) (zipWith (+) (degList x) (degList y))
 
-totalDeg :: Mon -> Int
+totalDeg :: Mon n o -> Int
 totalDeg = sum . degList
 
 headOrZero :: [Int] -> Int
