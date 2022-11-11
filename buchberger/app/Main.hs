@@ -1,39 +1,20 @@
 module Main where
 
 import Data.Char.SScript (formatSS)
---import qualified BaseRing as BR
-import qualified Polynomial as P
+import qualified DenseMonom as M
 import qualified RingParams as RP
-import qualified GHC.TypeNats as TN
-
---params = RingParams {field=Q, order=Lex, numVars=30}
-
---myMonoid = ... (something of type Mon)
---R = Poly myMonoid Field
-
-o = RP.Lex
-n = TN.someNatVal 30
-k = RP.Q
-r = P.Poly k n o
 
 main :: IO ()
 main = do
-    let fstring = "-4x_3^4 x_2 x_5^2 - 7/2 x_1^2 x_3 x_2^5 x_9^3 + 6 x_2^4 x_5^3 + 9/3 x_4^9x_3^9x_2^9"
-        gstring = "25x_1^4 x_3 x_2^7 x_5^2 x_8 x_7^4 + 7x_3^3 x_2^2 x_5^2 x_8^2 x_7 x_4 + x_13^9x_2^4 x_6^2"
-        hstring = "x_1^5 + 2x_1^7 - 4x_1^8 + x_1 + 35/15 + 2x_1^4 x_3 x_2^7 x_5^2 x_8 x_7^4"
-        f = (fromString params fstring) :: r
-        g = (fromString params gstring) :: r
-        h = (fromString params hstring) :: r
+    let fstring = "x_3^4 x_2 x_5^2"
+        gstring = "x_1^4 x_3 x_2^7 x_5^2 x_8 x_7^4"
+        hstring = "x_2^5"
+        f = M.fromString fstring :: M.Monomial RP.Lex 9
+        g = M.fromString gstring :: M.Monomial RP.Lex 5
+        h = M.fromString hstring :: M.Monomial RP.Lex 9
+        i = mempty :: M.Monomial RP.Lex 5
     putStrLn $ "f = " ++ (formatSS . show) f
     putStrLn $ "g = " ++ (formatSS . show) g
     putStrLn $ "h = " ++ (formatSS . show) h
-    putStrLn $ "LT(f) = " ++ (formatSS . show $ leadTerm f)
-    putStrLn $ "LT(g) = " ++ (formatSS . show $ leadTerm g)
-    putStrLn $ "LT(h) = " ++ (formatSS . show $ leadTerm h)
-    putStrLn $ "LM(f) = " ++ (formatSS . show $ leadMonomP f)
-    putStrLn $ "LM(g) = " ++ (formatSS . show $ leadMonomP g)
-    putStrLn $ "LM(h) = " ++ (formatSS . show $ leadMonomP h)
-    putStrLn $ "g + h = " ++ (formatSS . show $ g `add` h)
-    print $ totalDegree f
-    print $ totalDegree g
-    print $ totalDegree h
+    putStrLn $ "fh = " ++ (formatSS . show) (f <> h)
+    putStrLn $ "gi = " ++ (formatSS . show) (g <> i)

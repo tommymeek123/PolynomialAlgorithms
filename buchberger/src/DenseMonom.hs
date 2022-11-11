@@ -1,77 +1,54 @@
-{-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE OverloadedStrings #-}
-
-module DenseMonom ( Mon(..)
+module DenseMonom ( Monomial(..)
                   , fromString
-                  , mult
                   , totalDeg
                   ) where
 
 import Data.List (mapAccumL, sort)
 import Data.List.Split (splitOn)
 import Data.Char (digitToInt, isSpace)
+import GHC.TypeLits (Symbol, Nat, KnownNat)
+import Data.Proxy (Proxy(..))
+import Data.Reflection (reflect)
 import qualified RingParams as RP
-import qualified GHC.TypeNats as TN
 
-data Mon n o = Mon { numVars :: n
-                   , order :: o
-                   } deriving (Eq)
+newtype Monomial :: RP.MonOrder -> Nat -> * where
+    Monomial :: { degList :: [Int] } -> Monomial o n deriving Eq
 
-instance Ord Mon n o where
-    compare a b = case order a of RP.Lex     -> lexOrder a b
-                                  RP.Grlex   -> grlexOrder a b
-                                  RP.Grevlex -> grevlexOrder a b
+instance Ord (Monomial RP.Lex n) where
+    compare a b = compare (degList a) (degList b)
 
-lexOrder :: Mon n o -> Mon n o -> Ordering
-lexOrder = mapComp compare degList
+instance Ord (Monomial RP.Glex n) where
+    compare a b = let aVb = compare (totalDeg a) (totalDeg b)
+                  in  if aVb == EQ
+                      then compare (degList a) (degList b)
+                      else aVb
 
-grlexOrder :: Mon n o -> Mon n o -> Ordering
-grlexOrder a b =
-    let aVb = compare (totalDeg a) (totalDeg b)
-    in  if aVb == EQ
-        then lexOrder a b
-        else aVb
+instance Ord (Monomial RP.GRevLex n) where
+    compare a b = let aVb = compare (totalDeg a) (totalDeg b)
+                      degDiff = zipWith (-) (degList a) (degList b)
+                  in  if aVb == EQ
+                      then compare 0
+                         . headOrZero
+                         . dropWhile (==0)
+                         . reverse $ degDiff
+                      else aVb
 
-grevlexOrder :: Mon n o -> Mon n o -> Ordering
-grevlexOrder a b =
-    let aVb = compare (totalDeg a) (totalDeg b)
-        degDiff = zipWith (-) (degList a) (degList b)
-    in  if aVb == EQ
-        then compare 0
-           . headOrZero
-           . dropWhile (==0)
-           . reverse $ degDiff
-        else aVb
-
-instance Show Mon n o where
+instance Show (Monomial o n) where
     show m = concat . snd $ mapAccumL f 1 (degList m)
         where f n x | x == 0 = (n+1, "")
                     | x == 1 = (n+1, "x_" ++ show n)
                     | otherwise = (n+1, "x_" ++ show n ++ "^" ++ show x)
 
-instance Semigroup Mon n o where
-a <> b = mult a b
+instance Semigroup (Monomial o n) where
+    a <> b = Monomial { degList=zipWith (+) (degList a) (degList b) }
 
-instance Monoid Mon n o where
-mempty = Mon { order = o, numVars = natVal n }
+instance (KnownNat n) => Monoid (Monomial o n) where
+    mempty = Monomial $ take nn (repeat 0)
+        where nn = (fromInteger . reflect) (Proxy :: Proxy n)
 
-degList :: Mon n o -> [Int]
-degList = take (natVal n) $ repeat 0
-
-fromString :: RP.RingParams -> String -> Mon
-fromString r s = Mon o $ listFromString n s
-    where o = RP.order r
-          n = RP.numVars r
-
-mult :: Mon -> Mon -> Mon
-mult x y = Mon (order x) (zipWith (+) (degList x) (degList y))
-
-totalDeg :: Mon n o -> Int
-totalDeg = sum . degList
-
-headOrZero :: [Int] -> Int
-headOrZero [] = 0
-headOrZero xs = head xs
+fromString :: forall o n. (KnownNat n) => String -> Monomial o n
+fromString s = Monomial { degList=listFromString nn s }
+    where nn = (fromInteger . reflect) (Proxy :: Proxy n)
 
 listFromString :: Int -> String -> [Int]
 listFromString n = rpad n
@@ -84,16 +61,12 @@ listFromString n = rpad n
                   | '^' `notElem` s = acc ++ [1]
                   | otherwise = acc ++ [(read . last . splitOn "^") s]
 
-mapComp :: (k -> k -> b) -> (a -> k) -> a -> a -> b
-mapComp g h x y = g (h x) (h y)
+totalDeg :: Monomial o n -> Int
+totalDeg = sum . degList
+
+headOrZero :: [Int] -> Int
+headOrZero [] = 0
+headOrZero xs = head xs
 
 rpad :: Int -> [Int] -> [Int]
 rpad m xs = take m $ xs ++ repeat 0
-
---degDiff :: Mon -> Mon -> [Int]
---degDiff a b
---    | length da == length db = zipWith (-) da db
---    | length da < length db = (zipWith (-) da db) ++ (map (*(-1)) $ drop (length da) db)
---    | length da > length db = (zipWith (-) da db) ++ (drop (length db) da)
---    where da = degList a
---          db = degList b
