@@ -3,70 +3,54 @@ module DenseMonom ( Monomial(..)
                   , totalDeg
                   ) where
 
-import Data.List (mapAccumL, sort)
-import Data.List.Split (splitOn)
-import Data.Char (digitToInt, isSpace)
+import Data.List (mapAccumL)
 import GHC.TypeLits (Symbol, Nat, KnownNat)
 import Data.Proxy (Proxy(..))
 import Data.Reflection (reflect)
+import qualified Data.Vector.Fixed as V
+import qualified Data.Vector.Fixed.Unboxed as UV
 import qualified RingParams as RP
+import qualified PolyParsers (monListFromString)
+listFromString = PolyParsers.monListFromString
 
-newtype Monomial :: RP.MonOrder -> Nat -> * where
-    Monomial :: { degList :: [Int] } -> Monomial o n deriving Eq
+data Monomial :: RP.MonOrder -> Nat -> * where
+    Monomial :: { degList :: UV.Vec n Int } -> Monomial o n
 
-instance Ord (Monomial RP.Lex n) where
+deriving instance V.Arity n => Eq (Monomial o n)
+
+instance V.Arity n => Ord (Monomial RP.Lex n) where
     compare a b = compare (degList a) (degList b)
 
-instance Ord (Monomial RP.Glex n) where
+instance V.Arity n => Ord (Monomial RP.Glex n) where
     compare a b = let aVb = compare (totalDeg a) (totalDeg b)
                   in  if aVb == EQ
                       then compare (degList a) (degList b)
                       else aVb
 
-instance Ord (Monomial RP.GRevLex n) where
+instance V.Arity n => Ord (Monomial RP.GRevLex n) where
     compare a b = let aVb = compare (totalDeg a) (totalDeg b)
-                      degDiff = zipWith (-) (degList a) (degList b)
+                      a' = V.reverse $ degList a
+                      b' = V.reverse $ degList b
                   in  if aVb == EQ
-                      then compare 0
-                         . headOrZero
-                         . dropWhile (==0)
-                         . reverse $ degDiff
+                      then compare b' a'
                       else aVb
 
-instance Show (Monomial o n) where
-    show m = concat . snd $ mapAccumL f 1 (degList m)
+instance V.Arity n => Show (Monomial o n) where
+    show m = concat . snd $ mapAccumL f 1 (V.toList $ degList m)
         where f n x | x == 0 = (n+1, "")
                     | x == 1 = (n+1, "x_" ++ show n)
                     | otherwise = (n+1, "x_" ++ show n ++ "^" ++ show x)
 
-instance Semigroup (Monomial o n) where
-    a <> b = Monomial { degList=zipWith (+) (degList a) (degList b) }
+instance V.Arity n => Semigroup (Monomial o n) where
+    a <> b = Monomial { degList = V.zipWith (+) (degList a) (degList b) }
 
-instance (KnownNat n) => Monoid (Monomial o n) where
-    mempty = Monomial $ take nn (repeat 0)
+instance (KnownNat n, V.Arity n) => Monoid (Monomial o n) where
+    mempty = Monomial $ V.fromList' $ take nn (repeat 0)
         where nn = (fromInteger . reflect) (Proxy :: Proxy n)
 
-fromString :: forall o n. (KnownNat n) => String -> Monomial o n
-fromString s = Monomial { degList=listFromString nn s }
+fromString :: forall o n. (KnownNat n, V.Arity n) => String -> Monomial o n
+fromString s = Monomial { degList = V.fromList' $ listFromString nn s }
     where nn = (fromInteger . reflect) (Proxy :: Proxy n)
 
-listFromString :: Int -> String -> [Int]
-listFromString n = rpad n
-                 . foldl f []
-                 . sort
-                 . splitOn "x_"
-                 . filter (not . isSpace)
-    where f acc s | s == "" = acc
-                  | length acc + 1 < (read . head . splitOn "^") s = f (acc ++ [0]) s
-                  | '^' `notElem` s = acc ++ [1]
-                  | otherwise = acc ++ [(read . last . splitOn "^") s]
-
-totalDeg :: Monomial o n -> Int
-totalDeg = sum . degList
-
-headOrZero :: [Int] -> Int
-headOrZero [] = 0
-headOrZero xs = head xs
-
-rpad :: Int -> [Int] -> [Int]
-rpad m xs = take m $ xs ++ repeat 0
+totalDeg :: V.Arity n => Monomial o n -> Int
+totalDeg = V.sum . degList
