@@ -1,5 +1,4 @@
 module DenseMonom ( Monomial(..)
-                  , fromString
                   , totalDeg
                   ) where
 
@@ -10,8 +9,7 @@ import Data.Reflection (reflect)
 import qualified Data.Vector.Fixed as V
 import qualified Data.Vector.Fixed.Unboxed as UV
 import qualified RingParams as RP
-import qualified PolyParsers (monListFromString)
-listFromString = PolyParsers.monListFromString
+import PolyParsers (Readable(..), monListFromString)
 
 data Monomial :: RP.MonOrder -> Nat -> * where
     Monomial :: { degList :: UV.Vec n Int } -> Monomial o n
@@ -48,9 +46,10 @@ instance (KnownNat n, V.Arity n) => Monoid (Monomial o n) where
     mempty = Monomial $ V.fromList' $ take nn (repeat 0)
         where nn = (fromInteger . reflect) (Proxy :: Proxy n)
 
-fromString :: forall o n. (KnownNat n, V.Arity n) => String -> Monomial o n
-fromString s = Monomial { degList = V.fromList' $ listFromString nn s }
-    where nn = (fromInteger . reflect) (Proxy :: Proxy n)
+instance (KnownNat n, V.Arity n) => Readable (Monomial o n) where
+    fromString :: forall o n. (KnownNat n, V.Arity n) => String -> Monomial o n
+    fromString s = Monomial { degList = V.fromList' $ monListFromString nn s }
+        where nn = (fromInteger . reflect) (Proxy :: Proxy n)
 
 totalDeg :: V.Arity n => Monomial o n -> Int
 totalDeg = V.sum . degList

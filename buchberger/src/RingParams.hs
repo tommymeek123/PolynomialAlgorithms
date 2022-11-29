@@ -1,8 +1,8 @@
-module RingParams ( Field(..)
+module RingParams ( Ring(..)
                   , MonOrder(..)
                   ) where
 
-data Field = Q | Fp deriving (Eq,Read,Show)
+data Ring = Q | Fp deriving (Eq,Read,Show)
 data MonOrder = Lex | Glex | GRevLex deriving (Eq,Read,Show)
 --data RingParams = RingParams { field :: Field
 --                             , order :: MonOrder

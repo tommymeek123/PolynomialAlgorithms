@@ -2,19 +2,41 @@ module Main where
 
 import Data.Char.SScript (formatSS)
 import qualified DenseMonom as M
+import qualified Polynomial as P
 import qualified RingParams as RP
+import PolyParsers (Readable(..))
 
 main :: IO ()
 main = do
-    let fstring = "x_3^4 x_2 x_5^2"
-        gstring = "x_1^4 x_3 x_2^7 x_5^2 x_8 x_7^4"
-        hstring = "x_2^5"
-        f = M.fromString fstring :: M.Monomial RP.Lex 9
-        g = M.fromString gstring :: M.Monomial RP.Lex 5
-        h = M.fromString hstring :: M.Monomial RP.Lex 9
-        i = mempty :: M.Monomial RP.Lex 5
-    putStrLn $ "f = " ++ (formatSS . show) f
-    putStrLn $ "g = " ++ (formatSS . show) g
-    putStrLn $ "h = " ++ (formatSS . show) h
-    putStrLn $ "fh = " ++ (formatSS . show) (f <> h)
-    putStrLn $ "gi = " ++ (formatSS . show) (g <> i)
+    let fmstring = "x_3^4 x_2 x_5^2"
+        gmstring = "x_1^4 x_3 x_2^7 x_5^2 x_8 x_7^4"
+        hmstring = "x_2^5"
+        fm = fromString fmstring :: M.Monomial RP.Lex 13
+        gm = fromString gmstring :: M.Monomial RP.Lex 5
+        hm = fromString hmstring :: M.Monomial RP.Lex 13
+        im = mempty :: M.Monomial RP.Lex 5
+    putStrLn $ "fm = " ++ (formatSS . show) fm
+    putStrLn $ "gm = " ++ (formatSS . show) gm
+    putStrLn $ "hm = " ++ (formatSS . show) hm
+    putStrLn $ "fm * hm = " ++ (formatSS . show) (fm <> hm)
+    putStrLn $ "gm * im = " ++ (formatSS . show) (gm <> im)
+
+    let fpstring = "-4x_3^4 x_2 x_5^2 - 7/2 x_1^2 x_3 x_2^5 x_9^3 + 6 x_2^4 x_5^3 + 9/3 x_4^9x_3^9x_2^9"
+        gpstring = "25x_1^4 x_3 x_2^7 x_5^2 x_8 x_7^4 + 7x_3^3 x_2^2 x_5^2 x_8^2 x_7 x_4 + x_13^9x_2^4 x_6^2"
+        hpstring = "x_1^5 + 2x_1^7 - 4x_1^8 + x_1 + 35/15 + 2x_1^4 x_3 x_2^7 x_5^2 x_8 x_7^4"
+        fp = (fromString fpstring) :: P.Polynomial RP.Q RP.Lex 13
+        gp = (fromString gpstring) :: P.Polynomial RP.Q RP.Lex 13
+        hp = (fromString hpstring) :: P.Polynomial RP.Q RP.Lex 13
+    putStrLn $ "fp = " ++ (formatSS . show) fp
+    putStrLn $ "gp = " ++ (formatSS . show) gp
+    putStrLn $ "hp = " ++ (formatSS . show) hp
+--    putStrLn $ "LT(fp) = " ++ (formatSS . show $ leadTerm fp)
+--    putStrLn $ "LT(gp) = " ++ (formatSS . show $ leadTerm gp)
+--    putStrLn $ "LT(hp) = " ++ (formatSS . show $ leadTerm hp)
+--    putStrLn $ "LM(fp) = " ++ (formatSS . show $ leadMonomP fp)
+--    putStrLn $ "LM(gp) = " ++ (formatSS . show $ leadMonomP gp)
+--    putStrLn $ "LM(hp) = " ++ (formatSS . show $ leadMonomP hp)
+--    putStrLn $ "gp + hp = " ++ (formatSS . show $ gp `add` hp)
+--    print $ totalDegree fp
+--    print $ totalDegree gp
+--    print $ totalDegree hp
