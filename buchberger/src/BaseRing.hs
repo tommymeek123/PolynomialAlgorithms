@@ -38,7 +38,7 @@ instance Readable (Coefficient RP.Q) where
 --data Fp = Fp deriving (Eq,Ord,Show)
 
 instance Show (Coefficient RP.Fp) where
-    show _ = "Fp"
+    show _ = show RP.Fp
 
 instance Num (Coefficient RP.Fp) where
     a + b         = Fp

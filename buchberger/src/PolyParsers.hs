@@ -25,7 +25,7 @@ ratFromString xs = if '/' `elem` xs
 monListFromString :: Int -> String -> [Int]
 monListFromString n = rpad n
                     . foldl f []
-                    . sort
+                    . sort -- Breaks here if more than 9 variables
                     . splitOn "x_"
                     . filter (not . isSpace)
     where f acc s | s == "" = acc
@@ -34,12 +34,13 @@ monListFromString n = rpad n
                   | otherwise = acc ++ [(read . last . splitOn "^") s]
 
 polyTupleListFromString :: String -> [(String, String)]
-polyTupleListFromString = map (swap . break (=='x'))
-                        . splitOn "+" -- Make a list of terms
-                        . intercalate "+-"
-                        . filter (not . null)
-                        . splitOn "-" -- This handles subtraction
-                        . filter (not . isSpace)
+polyTupleListFromString [] = []
+polyTupleListFromString s = map (swap . break (=='x'))
+                          . splitOn "+" -- Make a list of terms
+                          . intercalate "+-"
+                          . filter (not . null)
+                          . splitOn "-" -- This handles subtraction
+                          . filter (not . isSpace) $ s
 
 rpad :: Int -> [Int] -> [Int]
 rpad m xs = take m $ xs ++ repeat 0

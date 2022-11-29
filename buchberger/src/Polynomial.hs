@@ -1,9 +1,9 @@
 module Polynomial ( Polynomial(..)
---                  , isZero
---                  , leadCoef
---                  , leadMonom
---                  , leadMonomP
---                  , leadTerm
+                  , isZero
+                  , leadCoef
+                  , leadMonom
+                  , leadMonomP
+                  , leadTerm
 --                  , totalDegree
                   ) where
 
@@ -44,22 +44,22 @@ mapFromString = Map.fromList
                 . map (\(ms,cs) -> (fromString ms, fromString cs))
                 . polyTupleListFromString
 
---isZero :: Poly k -> Bool
---isZero = Map.null . monMap
---
---leadMonom :: Poly k -> Maybe M.Mon
---leadMonom = fmap fst . Map.lookupMax . monMap
---
---leadMonomP :: Poly k -> Maybe (Poly k)
---leadMonomP p = case leadMonom p of
---    Just m -> fmap Just Poly $ Map.singleton m 1
---    Nothing -> Nothing
---
---leadCoef :: Poly k -> Maybe k
---leadCoef = fmap snd . Map.lookupMax . monMap
---
---leadTerm :: Poly k -> Maybe (Poly k)
---leadTerm p = liftM2 (Poly .: Map.singleton) (leadMonom p) (leadCoef p)
+isZero :: Poly r o n -> Bool
+isZero = Map.null . monMap
+
+leadMonom :: Poly r o n -> Maybe (Mon o n)
+leadMonom = fmap fst . Map.lookupMax . monMap
+
+leadMonomP :: Num (C r) => Poly r o n -> Maybe (Poly r o n)
+leadMonomP p = case leadMonom p of
+    Just m -> fmap Just MakePoly $ Map.singleton m (fromInteger 1)
+    Nothing -> Nothing
+
+leadCoef :: Poly r o n -> Maybe (C r)
+leadCoef = fmap snd . Map.lookupMax . monMap
+
+leadTerm :: Poly r o n -> Maybe (Poly r o n)
+leadTerm p = liftM2 (MakePoly .: Map.singleton) (leadMonom p) (leadCoef p)
 
 --totalDegree :: Poly -> Maybe Int
 --totalDegree p = M.totalDeg . fst $ maximumBy f (monMap p)
