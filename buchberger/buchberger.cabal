@@ -12,6 +12,7 @@ library
                         , composition
                         , containers
                         , fixed-vector
+                        , ilist
                         , reflection
                         , proxy
                         , split

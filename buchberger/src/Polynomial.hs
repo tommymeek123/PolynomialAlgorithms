@@ -7,17 +7,16 @@ module Polynomial ( Polynomial(..)
 --                  , totalDegree
                   ) where
 
-import Data.List (intercalate)
 import Data.Maybe (isNothing)
 import Control.Monad (liftM2)
 import Data.Composition ((.:))
 import Data.Foldable (maximumBy)
-import GHC.TypeLits (Symbol, Nat, KnownNat)
+import GHC.TypeLits (Nat)
 import qualified Data.Map as Map
 import qualified BaseRing as R
 import qualified DenseMonom as M
 import qualified RingParams as RP
-import PolyParsers (Readable(..), polyTupleListFromString)
+import PolyParsers (Readable(..), polyTupleListFromString, polyListToString)
 
 type C = R.Coefficient
 type Mon = M.Monomial
@@ -27,22 +26,18 @@ data Polynomial :: RP.Ring -> RP.MonOrder -> Nat -> * where
     MakePoly :: { monMap :: Map.Map (Mon o n) (C r) } -> Polynomial r o n
 
 instance (Show (Mon o n), Show (C r)) => Show (Poly r o n) where
-    show = let removeOnes s = if head s == '1' then tail s else s
-           in intercalate " + "
-            . map removeOnes
-            . map (\(m,c) -> show c ++ show m)
-            . Map.assocs
-            . monMap
+    show = polyListToString
+         . map (\(m,c) -> show c ++ show m)
+         . reverse
+         . Map.assocs
+         . monMap
 
 instance (Ord (Mon o n), Readable (Mon o n), Readable (C r))
           => Readable (Poly r o n) where
-    fromString = MakePoly . mapFromString
-
-mapFromString :: (Ord (Mon o n), Readable (Mon o n), Readable (C r))
-                => String -> Map.Map (Mon o n) (C r)
-mapFromString = Map.fromList
-                . map (\(ms,cs) -> (fromString ms, fromString cs))
-                . polyTupleListFromString
+    fromString = MakePoly
+               . Map.fromList
+               . map (\(ms,cs) -> (fromString ms, fromString cs))
+               . polyTupleListFromString
 
 isZero :: Poly r o n -> Bool
 isZero = Map.null . monMap
@@ -75,11 +70,6 @@ leadTerm p = liftM2 (MakePoly .: Map.singleton) (leadMonom p) (leadCoef p)
 --add p q = Poly $ Map.unionWith (+) (monMap p) (monMap q)
 
 --mult :: Poly -> Poly -> Poly
-
---leadTerm :: Poly -> Poly
---leadTerm p
---    | Map.null (monMap p) = Poly Map.empty
---    | otherwise = (Poly . uncurry Map.singleton . Map.findMax . monMap) p
 
 --totalPolyDegree :: Poly -> Maybe Int
 --totalPolyDegree p

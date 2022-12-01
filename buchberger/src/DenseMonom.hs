@@ -2,14 +2,13 @@ module DenseMonom ( Monomial(..)
                   , totalDeg
                   ) where
 
-import Data.List (mapAccumL)
 import GHC.TypeLits (Symbol, Nat, KnownNat)
 import Data.Proxy (Proxy(..))
 import Data.Reflection (reflect)
 import qualified Data.Vector.Fixed as V
 import qualified Data.Vector.Fixed.Unboxed as UV
 import qualified RingParams as RP
-import PolyParsers (Readable(..), monListFromString)
+import PolyParsers (Readable(..), monListFromString, monListToString)
 
 data Monomial :: RP.MonOrder -> Nat -> * where
     Monomial :: { degList :: UV.Vec n Int } -> Monomial o n
@@ -34,10 +33,7 @@ instance V.Arity n => Ord (Monomial RP.GRevLex n) where
                       else aVb
 
 instance V.Arity n => Show (Monomial o n) where
-    show m = concat . snd $ mapAccumL f 1 (V.toList $ degList m)
-        where f n x | x == 0 = (n+1, "")
-                    | x == 1 = (n+1, "x_" ++ show n)
-                    | otherwise = (n+1, "x_" ++ show n ++ "^" ++ show x)
+    show m = monListToString (V.toList $ degList m)
 
 instance V.Arity n => Semigroup (Monomial o n) where
     a <> b = Monomial { degList = V.zipWith (+) (degList a) (degList b) }

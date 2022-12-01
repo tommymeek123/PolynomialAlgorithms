@@ -3,7 +3,7 @@ module BaseRing ( Coefficient(..) ) where
 import Data.Ratio ((%), numerator, denominator)
 --import Control.DeepSeq (NFData, rnf)
 import qualified RingParams as RP
-import PolyParsers (Readable(..), ratFromString)
+import PolyParsers (Readable(..), ratFromString, ratToString)
 
 data Coefficient :: RP.Ring -> * where
     Q :: Rational -> Coefficient r
@@ -11,11 +11,7 @@ data Coefficient :: RP.Ring -> * where
     deriving Eq
 
 instance Show (Coefficient RP.Q) where
-    show (Q r) = if d == 1
-                 then show n
-                 else show n ++ "/" ++ show d
-                 where n = numerator r
-                       d = denominator r
+    show (Q r) = ratToString r
 
 --instance NFData Field where
 --    rnf (Q a) = rnf a
