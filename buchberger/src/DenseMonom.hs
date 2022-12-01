@@ -10,7 +10,7 @@ import qualified Data.Vector.Fixed.Unboxed as UV
 import qualified RingParams as RP
 import PolyParsers (Readable(..), monListFromString, monListToString)
 
-data Monomial :: RP.MonOrder -> Nat -> * where
+newtype Monomial :: RP.MonOrder -> Nat -> * where
     Monomial :: { degList :: UV.Vec n Int } -> Monomial o n
 
 deriving instance V.Arity n => Eq (Monomial o n)

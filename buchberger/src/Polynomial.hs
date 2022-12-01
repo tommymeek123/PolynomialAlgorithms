@@ -23,7 +23,7 @@ type C = R.Coefficient
 type Mon = M.Monomial
 type Poly = Polynomial
 
-data Polynomial :: RP.Ring -> RP.MonOrder -> Nat -> * where
+newtype Polynomial :: RP.Ring -> RP.MonOrder -> Nat -> * where
     MakePoly :: { monMap :: Map.Map (Mon o n) (C r) } -> Polynomial r o n
 
 instance (Show (Mon o n), Show (C r)) => Show (Poly r o n) where
