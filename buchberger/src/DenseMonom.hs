@@ -1,5 +1,5 @@
 module DenseMonom ( Monomial(..)
-                  , totalDeg
+                  , totalDegree
                   ) where
 
 import GHC.TypeLits (Symbol, Nat, KnownNat)
@@ -19,13 +19,13 @@ instance V.Arity n => Ord (Monomial RP.Lex n) where
     compare a b = compare (degList a) (degList b)
 
 instance V.Arity n => Ord (Monomial RP.Glex n) where
-    compare a b = let aVb = compare (totalDeg a) (totalDeg b)
+    compare a b = let aVb = compare (totalDegree a) (totalDegree b)
                   in  if aVb == EQ
                       then compare (degList a) (degList b)
                       else aVb
 
 instance V.Arity n => Ord (Monomial RP.GRevLex n) where
-    compare a b = let aVb = compare (totalDeg a) (totalDeg b)
+    compare a b = let aVb = compare (totalDegree a) (totalDegree b)
                       a' = V.reverse $ degList a
                       b' = V.reverse $ degList b
                   in  if aVb == EQ
@@ -47,5 +47,5 @@ instance (KnownNat n, V.Arity n) => Readable (Monomial o n) where
     fromString s = Monomial { degList = V.fromList' $ monListFromString nn s }
         where nn = (fromInteger . reflect) (Proxy :: Proxy n)
 
-totalDeg :: V.Arity n => Monomial o n -> Int
-totalDeg = V.sum . degList
+totalDegree :: V.Arity n => Monomial o n -> Int
+totalDegree = V.sum . degList

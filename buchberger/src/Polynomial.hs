@@ -4,7 +4,7 @@ module Polynomial ( Polynomial(..)
                   , leadMonom
                   , leadMonomP
                   , leadTerm
---                  , totalDegree
+                  , totalDegree
                   ) where
 
 import Data.Maybe (isNothing)
@@ -12,6 +12,7 @@ import Control.Monad (liftM2)
 import Data.Composition ((.:))
 import Data.Foldable (maximumBy)
 import GHC.TypeLits (Nat)
+import qualified Data.Vector.Fixed as V
 import qualified Data.Map as Map
 import qualified BaseRing as R
 import qualified DenseMonom as M
@@ -39,6 +40,9 @@ instance (Ord (Mon o n), Readable (Mon o n), Readable (C r))
                . map (\(ms,cs) -> (fromString ms, fromString cs))
                . polyTupleListFromString
 
+instance (Ord (Mon o n), Num (C r)) => Num (Poly r o n) where
+    f + g = MakePoly $ Map.unionWith (+) (monMap f) (monMap g)
+
 isZero :: Poly r o n -> Bool
 isZero = Map.null . monMap
 
@@ -56,25 +60,7 @@ leadCoef = fmap snd . Map.lookupMax . monMap
 leadTerm :: Poly r o n -> Maybe (Poly r o n)
 leadTerm p = liftM2 (MakePoly .: Map.singleton) (leadMonom p) (leadCoef p)
 
---totalDegree :: Poly -> Maybe Int
---totalDegree p = M.totalDeg . fst $ maximumBy f (monMap p)
---    where f x y = compare ((M.totalDeg . fst) x) ((M.totalDeg . fst) y)
-
---totalDegree :: Poly k -> Maybe Int
---totalDegree p = if isZero p
---                then Nothing
---                else Just $ M.totalDeg . maximumBy f . Map.keys . monMap $ p
---                where f x y = compare (M.totalDeg x) (M.totalDeg y)
---
---add :: Poly k -> Poly k -> Poly k
---add p q = Poly $ Map.unionWith (+) (monMap p) (monMap q)
-
---mult :: Poly -> Poly -> Poly
-
---totalPolyDegree :: Poly -> Maybe Int
---totalPolyDegree p
---    | Map.null (monMap p) = Nothing
---    | otherwise = Just $ (totalMonDeg . head . Map.keys . monMap . leadTerm) p
-
---polyAdd :: Poly -> Poly -> Poly
--- polyAdd = Map.unionWith (+)
+totalDegree :: V.Arity n => Poly r o n -> Maybe Int
+totalDegree p | isZero p = Nothing
+              | otherwise = (Just . M.totalDegree . maximumBy comp . Map.keys . monMap) p
+    where comp a b = compare (M.totalDegree a) (M.totalDegree b)
