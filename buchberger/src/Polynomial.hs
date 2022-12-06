@@ -34,15 +34,22 @@ instance (Show (Mon o n), Show (Coef r)) => Show (Poly r o n) where
          . Map.assocs
          . monMap
 
-instance (Ord (Mon o n), Readable (Mon o n), Readable (Coef r))
+instance (Ord (Mon o n), Readable (Mon o n), Num (Coef r), Readable (Coef r))
           => Readable (Poly r o n) where
     fromString = MakePoly
-               . Map.fromList
+               . Map.filter (/= (fromInteger 0))
+               . Map.fromListWith (+)
                . map (\(ms,cs) -> (fromString ms, fromString cs))
                . polyTupleListFromString
 
 instance (Ord (Mon o n), Num (Coef r)) => Num (Poly r o n) where
     f + g = MakePoly $ Map.unionWith (+) (monMap f) (monMap g)
+--    (Q r) - (Q s) = Q (r - s)
+--    (Q r) * (Q s) = Q (r * s)
+--    abs (Q r)     = Q (abs r)
+--    signum (Q r)  = Q (signum r)
+--    fromInteger n = Q $ n % 1
+    negate = MakePoly . Map.map negate . monMap
 
 isZero :: Poly r o n -> Bool
 isZero = Map.null . monMap

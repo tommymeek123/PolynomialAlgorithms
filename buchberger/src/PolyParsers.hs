@@ -77,9 +77,10 @@ polyTupleListFromString s = map (swap . break (=='x'))
     . filter (not . isSpace) $ s
 
 polyListToString :: [String] -> String
-polyListToString = let removeOnes s = if head s == '1' then tail s else s
-                   in intercalate " - " . splitOn " + -" -- Show - instead of + -
-                    . intercalate " + " . map removeOnes
+polyListToString [] = "0"
+polyListToString f = let removeOnes s = if length s > 1 && head s == '1' then tail s else s
+                   in (intercalate " - " . splitOn " + -" -- Show - instead of + -
+                     . intercalate " + " . map removeOnes) f
 
 --rpad :: Int -> [Int] -> [Int]
 --rpad m xs = take m $ xs ++ repeat 0
