@@ -47,10 +47,10 @@ instance (Ord (Mon o n), Readable (Mon o n), Num (Coef r), Readable (Coef r))
                . polyTupleListFromString
 
 instance (Ord (Mon o n), Num (Coef r), V.Arity n) => Num (Poly r o n) where
-    f + g = makePoly . Map.filter (/= (fromInteger 0)) $ Map.unionWith (+) (monMap f) (monMap g)
+    f + g = makePoly $ Map.unionWith (+) (monMap f) (monMap g)
 --    f * g =
---    abs f =
---    signum f =
+    abs = id
+    signum _ = fromInteger 1
     fromInteger n = makePoly $ Map.singleton mempty (fromInteger n)
     negate = makePoly . Map.map negate . monMap
 
