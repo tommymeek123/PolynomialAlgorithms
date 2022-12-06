@@ -26,15 +26,20 @@ main = do
         gp = (fromString gpstring) :: P.Polynomial RP.Q RP.Lex 13
         hp = (fromString hpstring) :: P.Polynomial RP.Q RP.Lex 13
         zero = fromString "5 - 5" :: P.Polynomial RP.Q RP.Lex 13
-        one = fromString "5 + 7 - 20 + 9" :: P.Polynomial RP.Q RP.Lex 13
+        one1 = fromInteger 1 :: P.Polynomial RP.Q RP.Lex 13
+        five = fromInteger 5 :: P.Polynomial RP.Q RP.Lex 13
+        one2 = fromString "5 + 7 - 20 + 9" :: P.Polynomial RP.Q RP.Lex 13
     putStrLn $ "fp = " ++ (formatSS . show) fp
     putStrLn $ "gp = " ++ (formatSS . show) gp
     putStrLn $ "hp = " ++ (formatSS . show) hp
     putStrLn $ "zero = " ++ (formatSS . show) zero
-    putStrLn $ "one = " ++ (formatSS . show) one
+    putStrLn $ "one1 = " ++ (formatSS . show) one1
+    putStrLn $ "one2 = " ++ (formatSS . show) one2
+    putStrLn $ "five = " ++ (formatSS . show) five
     print $ P.isZero fp
     print $ P.isZero zero
-    print $ P.isZero one
+    print $ P.isZero one1
+    print $ one1 == one2
     putStrLn $ "LT(fp) = " ++ (formatSS . show $ P.leadTerm fp)
     putStrLn $ "LT(gp) = " ++ (formatSS . show $ P.leadTerm gp)
     putStrLn $ "LT(hp) = " ++ (formatSS . show $ P.leadTerm hp)
@@ -60,4 +65,4 @@ main = do
     print $ negate gp
     print $ negate hp
     print $ negate zero
-    print $ negate one
+    print $ negate one1

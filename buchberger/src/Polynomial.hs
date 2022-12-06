@@ -27,6 +27,8 @@ type Poly = Polynomial
 newtype Polynomial :: RP.Ring -> RP.MonOrder -> Nat -> * where
     MakePoly :: { monMap :: Map.Map (Mon o n) (Coef r) } -> Polynomial r o n
 
+deriving instance V.Arity n => Eq (Poly r o n)
+
 makePoly :: Num (Coef r) => Map.Map (Mon o n) (Coef r) -> Poly r o n
 makePoly = MakePoly . Map.filter (/= (fromInteger 0))
 
@@ -44,13 +46,12 @@ instance (Ord (Mon o n), Readable (Mon o n), Num (Coef r), Readable (Coef r))
                . map (\(ms,cs) -> (fromString ms, fromString cs))
                . polyTupleListFromString
 
-instance (Ord (Mon o n), Num (Coef r)) => Num (Poly r o n) where
+instance (Ord (Mon o n), Num (Coef r), V.Arity n) => Num (Poly r o n) where
     f + g = makePoly . Map.filter (/= (fromInteger 0)) $ Map.unionWith (+) (monMap f) (monMap g)
---    (Q r) - (Q s) = Q (r - s)
---    (Q r) * (Q s) = Q (r * s)
---    abs (Q r)     = Q (abs r)
---    signum (Q r)  = Q (signum r)
---    fromInteger n = Q $ n % 1
+--    f * g =
+--    abs f =
+--    signum f =
+    fromInteger n = makePoly $ Map.singleton mempty (fromInteger n)
     negate = makePoly . Map.map negate . monMap
 
 isZero :: Poly r o n -> Bool
