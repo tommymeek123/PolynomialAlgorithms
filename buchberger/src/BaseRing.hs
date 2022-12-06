@@ -1,4 +1,4 @@
-module BaseRing ( Coefficient(..) ) where
+module BaseRing ( Coefficient ) where
 
 import Data.Ratio ((%), numerator, denominator)
 --import Control.DeepSeq (NFData, rnf)
@@ -30,8 +30,6 @@ instance Fractional (Coefficient RP.Q) where
 
 instance Readable (Coefficient RP.Q) where
     fromString = Q . ratFromString
-
---data Fp = Fp deriving (Eq,Ord,Show)
 
 instance Show (Coefficient RP.Fp) where
     show _ = show RP.Fp

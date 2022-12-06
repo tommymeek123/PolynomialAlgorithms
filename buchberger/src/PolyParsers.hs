@@ -78,7 +78,7 @@ polyTupleListFromString s = map (swap . break (=='x'))
 
 polyListToString :: [String] -> String
 polyListToString [] = "0"
-polyListToString f = let removeOnes s = if length s > 1 && head s == '1' then tail s else s
+polyListToString f = let removeOnes s = if length s > 1 && takeWhile (/= 'x') s == "1" then tail s else s
                    in (intercalate " - " . splitOn " + -" -- Show - instead of + -
                      . intercalate " + " . map removeOnes) f
 

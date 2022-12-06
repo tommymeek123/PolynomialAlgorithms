@@ -1,4 +1,4 @@
-module DenseMonom ( Monomial(..)
+module DenseMonom ( Monomial
                   , totalDegree
                   , multiDegree
                   ) where
