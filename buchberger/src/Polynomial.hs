@@ -73,7 +73,11 @@ leadTerm p = liftM2 (makePoly .: Map.singleton) (leadMonom p) (leadCoef p)
 
 totalDegree :: V.Arity n => Poly r o n -> Maybe Int
 totalDegree p | isZero p = Nothing
-              | otherwise = (Just . M.totalDegree . maximumBy comp . Map.keys . monMap) p
+              | otherwise = (Just
+                           . M.totalDegree
+                           . maximumBy comp
+                           . Map.keys
+                           . monMap) p
     where comp a b = compare (M.totalDegree a) (M.totalDegree b)
 
 multiDegree :: V.Arity n => Poly r o n -> Maybe [Int]

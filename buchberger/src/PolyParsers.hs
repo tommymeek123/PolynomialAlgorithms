@@ -50,7 +50,9 @@ monTupleListFromString n = filter (\(k,v) -> k <= n)
     . splitOn "x_"
     . filter (not . isSpace)
     where k s = (read . takeWhile (/= '^')) s
-          v s = if '^' `elem` s then (read . tail . dropWhile (/= '^')) s else 1
+          v s = if '^' `elem` s
+                then (read . tail . dropWhile (/= '^')) s
+                else 1
 
 --monListFromString :: Int -> String -> [Int]
 --monListFromString n = rpad n
@@ -78,7 +80,9 @@ polyTupleListFromString s = map (swap . break (=='x'))
 
 polyListToString :: [String] -> String
 polyListToString [] = "0"
-polyListToString f = let removeOnes s = if length s > 1 && takeWhile (/= 'x') s == "1" then tail s else s
+polyListToString f = let removeOnes s = if length s > 1 && takeWhile (/= 'x') s == "1"
+                                        then tail s
+                                        else s
                    in (intercalate " - " . splitOn " + -" -- Show - instead of + -
                      . intercalate " + " . map removeOnes) f
 
