@@ -61,7 +61,7 @@ leadMonom :: Poly r n o -> Maybe (Mon n o)
 leadMonom = fmap fst . Map.lookupMax . monMap
 
 leadMonomP :: Num (Coef r) => Poly r n o -> Maybe (Poly r n o)
-leadMonomP p = case leadMonom p of
+leadMonomP f = case leadMonom f of
     Just m -> fmap Just makePoly $ Map.singleton m (fromInteger 1)
     Nothing -> Nothing
 
@@ -69,15 +69,15 @@ leadCoef :: Poly r n o -> Maybe (Coef r)
 leadCoef = fmap snd . Map.lookupMax . monMap
 
 leadTerm :: Num (Coef r) => Poly r n o -> Maybe (Poly r n o)
-leadTerm p = liftM2 (makePoly .: Map.singleton) (leadMonom p) (leadCoef p)
+leadTerm f = liftM2 (makePoly .: Map.singleton) (leadMonom f) (leadCoef f)
 
 totalDegree :: V.Arity n => Poly r n o -> Maybe Int
-totalDegree p | isZero p = Nothing
+totalDegree f | isZero f = Nothing
               | otherwise = (Just
                            . M.totalDegree
                            . maximumBy comp
                            . Map.keys
-                           . monMap) p
+                           . monMap) f
     where comp a b = compare (M.totalDegree a) (M.totalDegree b)
 
 multiDegree :: V.Arity n => Poly r n o -> Maybe [Int]
