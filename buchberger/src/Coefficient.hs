@@ -1,24 +1,26 @@
-module BaseRing ( Coefficient ) where
+module Coefficient ( Coefficient ) where
 
 import Data.Ratio ((%), numerator, denominator)
 --import Control.DeepSeq (NFData, rnf)
 import qualified RingParams as RP
 import PolyParsers (Readable(..), ratFromString, ratToString)
 
-type Coef = Coefficient
+--type Coef = Coefficient
+type Q = Coefficient RP.Q
+type Fp = Coefficient RP.Fp
 
 data Coefficient :: RP.Ring -> * where
     Q :: Rational -> Coefficient r
     Fp :: Coefficient r
     deriving Eq
 
-instance Show (Coef RP.Q) where
+instance Show Q where
     show (Q r) = ratToString r
 
 --instance NFData Field where
 --    rnf (Q a) = rnf a
 
-instance Num (Coef RP.Q) where
+instance Num Q where
     (Q r) + (Q s) = Q (r + s)
     (Q r) - (Q s) = Q (r - s)
     (Q r) * (Q s) = Q (r * s)
@@ -26,17 +28,17 @@ instance Num (Coef RP.Q) where
     signum (Q r)  = Q (signum r)
     fromInteger n = Q $ n % 1
 
-instance Fractional (Coef RP.Q) where
+instance Fractional Q where
     recip (Q r)  = Q (denominator r % numerator r)
     fromRational = Q
 
-instance Readable (Coef RP.Q) where
+instance Readable Q where
     fromString = Q . ratFromString
 
-instance Show (Coef RP.Fp) where
+instance Show Fp where
     show _ = show RP.Fp
 
-instance Num (Coef RP.Fp) where
+instance Num Fp where
     a + b         = Fp
     a - b         = Fp
     a * b         = Fp
@@ -44,9 +46,9 @@ instance Num (Coef RP.Fp) where
     signum a      = Fp
     fromInteger n = Fp
 
-instance Fractional (Coef RP.Fp) where
+instance Fractional Fp where
     recip a        = Fp
     fromRational a = Fp
 
-instance Readable (Coef RP.Fp) where
+instance Readable Fp where
     fromString s = Fp

@@ -15,38 +15,38 @@ import Data.Foldable (maximumBy)
 import GHC.TypeLits (Nat)
 import qualified Data.Vector.Fixed as V
 import qualified Data.Map as Map
-import qualified BaseRing as R
+import qualified Coefficient as C
 import qualified DenseMonom as M
 import qualified RingParams as RP
 import PolyParsers (Readable(..), polyTupleListFromString, polyListToString)
 
-type Coef = R.Coefficient
+type Coef = C.Coefficient
 type Mon = M.Monomial
 type Poly = Polynomial
 
-newtype Polynomial :: RP.Ring -> RP.MonOrder -> Nat -> * where
-    MakePoly :: { monMap :: Map.Map (Mon o n) (Coef r) } -> Polynomial r o n
+newtype Polynomial :: RP.Ring -> Nat -> RP.MonOrder -> * where
+    MakePoly :: { monMap :: Map.Map (Mon n o) (Coef r) } -> Polynomial r n o
 
-deriving instance V.Arity n => Eq (Poly r o n)
+deriving instance V.Arity n => Eq (Poly r n o)
 
-makePoly :: Num (Coef r) => Map.Map (Mon o n) (Coef r) -> Poly r o n
+makePoly :: Num (Coef r) => Map.Map (Mon n o) (Coef r) -> Poly r n o
 makePoly = MakePoly . Map.filter (/= (fromInteger 0))
 
-instance (Show (Mon o n), Show (Coef r)) => Show (Poly r o n) where
+instance (Show (Mon n o), Show (Coef r)) => Show (Poly r n o) where
     show = polyListToString
          . map (\(m,c) -> show c ++ show m)
          . reverse
          . Map.assocs
          . monMap
 
-instance (Ord (Mon o n), Readable (Mon o n), Num (Coef r), Readable (Coef r))
-          => Readable (Poly r o n) where
+instance (Ord (Mon n o), Readable (Mon n o), Num (Coef r), Readable (Coef r))
+          => Readable (Poly r n o) where
     fromString = makePoly
                . Map.fromListWith (+)
                . map (\(ms,cs) -> (fromString ms, fromString cs))
                . polyTupleListFromString
 
-instance (Ord (Mon o n), Num (Coef r), V.Arity n) => Num (Poly r o n) where
+instance (Ord (Mon n o), Num (Coef r), V.Arity n) => Num (Poly r n o) where
     f + g = makePoly $ Map.unionWith (+) (monMap f) (monMap g)
 --    f * g =
     abs = id
@@ -54,24 +54,24 @@ instance (Ord (Mon o n), Num (Coef r), V.Arity n) => Num (Poly r o n) where
     fromInteger n = makePoly $ Map.singleton mempty (fromInteger n)
     negate = makePoly . Map.map negate . monMap
 
-isZero :: Poly r o n -> Bool
+isZero :: Poly r n o -> Bool
 isZero = Map.null . monMap
 
-leadMonom :: Poly r o n -> Maybe (Mon o n)
+leadMonom :: Poly r n o -> Maybe (Mon n o)
 leadMonom = fmap fst . Map.lookupMax . monMap
 
-leadMonomP :: Num (Coef r) => Poly r o n -> Maybe (Poly r o n)
+leadMonomP :: Num (Coef r) => Poly r n o -> Maybe (Poly r n o)
 leadMonomP p = case leadMonom p of
     Just m -> fmap Just makePoly $ Map.singleton m (fromInteger 1)
     Nothing -> Nothing
 
-leadCoef :: Poly r o n -> Maybe (Coef r)
+leadCoef :: Poly r n o -> Maybe (Coef r)
 leadCoef = fmap snd . Map.lookupMax . monMap
 
-leadTerm :: Num (Coef r) => Poly r o n -> Maybe (Poly r o n)
+leadTerm :: Num (Coef r) => Poly r n o -> Maybe (Poly r n o)
 leadTerm p = liftM2 (makePoly .: Map.singleton) (leadMonom p) (leadCoef p)
 
-totalDegree :: V.Arity n => Poly r o n -> Maybe Int
+totalDegree :: V.Arity n => Poly r n o -> Maybe Int
 totalDegree p | isZero p = Nothing
               | otherwise = (Just
                            . M.totalDegree
@@ -80,5 +80,5 @@ totalDegree p | isZero p = Nothing
                            . monMap) p
     where comp a b = compare (M.totalDegree a) (M.totalDegree b)
 
-multiDegree :: V.Arity n => Poly r o n -> Maybe [Int]
+multiDegree :: V.Arity n => Poly r n o -> Maybe [Int]
 multiDegree = M.multiDegree . leadMonom

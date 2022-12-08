@@ -7,7 +7,7 @@ author:             Frank Moore and Tommy Meek
 --description:
 
 library
-    exposed-modules:      BaseRing, DenseMonom, Polynomial, PolyParsers, RingParams
+    exposed-modules:      Coefficient, DenseMonom, Polynomial, PolyParsers, RingParams
     build-depends:        base ^>=4.16.3.0
                         , composition
                         , containers
