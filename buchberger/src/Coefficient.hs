@@ -5,7 +5,6 @@ import Data.Ratio ((%), numerator, denominator)
 import qualified RingParams as RP
 import PolyParsers (Readable(..), ratFromString, ratToString)
 
---type Coef = Coefficient
 type Q = Coefficient RP.Q
 type Fp = Coefficient RP.Fp
 

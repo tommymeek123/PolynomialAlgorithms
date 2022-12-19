@@ -48,11 +48,16 @@ instance (Ord (Mon n o), Readable (Mon n o), Num (Coef r), Readable (Coef r))
 
 instance (Ord (Mon n o), Num (Coef r), V.Arity n) => Num (Poly r n o) where
     f + g = makePoly $ Map.unionWith (+) (monMap f) (monMap g)
---    f * g =
+    f * g = Map.foldrWithKey distrOverF (fromInteger 0) (monMap g)
+        where distrOverF m c = (+) (leftMult m c f)
     abs = id
     signum _ = fromInteger 1
     fromInteger n = makePoly $ Map.singleton mempty (fromInteger n)
     negate = makePoly . Map.map negate . monMap
+
+leftMult :: (Ord (Mon n o), Num (Coef r), V.Arity n)
+             => Mon n o -> Coef r -> Poly r n o -> Poly r n o
+leftMult m c = makePoly . Map.map (c *) . Map.mapKeys (m <>) . monMap
 
 isZero :: Poly r n o -> Bool
 isZero = Map.null . monMap
@@ -82,3 +87,7 @@ totalDegree f | isZero f = Nothing
 
 multiDegree :: V.Arity n => Poly r n o -> Maybe [Int]
 multiDegree = M.multiDegree . leadMonom
+
+leftMult :: (Ord (Mon n o), Num (Coef r), V.Arity n)
+             => Mon n o -> Coef r -> Poly r n o -> Poly r n o
+leftMult m c = makePoly . Map.map (c *) . Map.mapKeys (m <>) . monMap

@@ -37,8 +37,9 @@ ratToString r = if d == 1
                       d = denominator r
 
 monListFromString :: Int -> String -> [Int]
-monListFromString n = foldl (\acc (k,v) -> setAt (k-1) v acc) (take n (repeat 0))
-    . monTupleListFromString n
+monListFromString n = foldl insertTuple zeros . monTupleListFromString n
+    where insertTuple degs (i,deg) = setAt (i-1) deg degs
+          zeros = take n (repeat 0)
 
 monMapFromString :: Int -> String -> Map.IntMap Int
 monMapFromString = Map.fromList .: monTupleListFromString
@@ -53,17 +54,6 @@ monTupleListFromString n = filter (\(k,v) -> k <= n)
           v s = if '^' `elem` s
                 then (read . tail . dropWhile (/= '^')) s
                 else 1
-
---monListFromString :: Int -> String -> [Int]
---monListFromString n = rpad n
---                    . foldl f []
---                    . sort -- Breaks here if more than 9 variables
---                    . splitOn "x_"
---                    . filter (not . isSpace)
---    where f acc s | s == "" = acc
---                  | length acc + 1 < (read . head . splitOn "^") s = f (acc ++ [0]) s
---                  | '^' `notElem` s = acc ++ [1]
---                  | otherwise = acc ++ [(read . last . splitOn "^") s]
 
 monListToString :: [Int] -> String
 monListToString xs = concat . snd $ mapAccumL f 1 xs
@@ -80,11 +70,12 @@ polyTupleListFromString s = map (swap . break (=='x'))
 
 polyListToString :: [String] -> String
 polyListToString [] = "0"
-polyListToString f = let removeOnes s = if length s > 1 && takeWhile (/= 'x') s == "1"
+polyListToString f = let isMonic s = takeWhile (/= 'x') s == "1"
+                         removeOnes s = if length s > 1 && isMonic s
                                         then tail s
                                         else s
-                   in (intercalate " - " . splitOn " + -" -- Show - instead of + -
-                     . intercalate " + " . map removeOnes) f
+    in (intercalate " - " . splitOn " + -" -- Display subtraction
+      . intercalate " + " . map removeOnes) f
 
 --rpad :: Int -> [Int] -> [Int]
 --rpad m xs = take m $ xs ++ repeat 0
