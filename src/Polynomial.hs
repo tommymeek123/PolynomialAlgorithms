@@ -87,7 +87,3 @@ totalDegree f | isZero f = Nothing
 
 multiDegree :: V.Arity n => Poly r n o -> Maybe [Int]
 multiDegree = M.multiDegree . leadMonom
-
-leftMult :: (Ord (Mon n o), Num (Coef r), V.Arity n)
-             => Mon n o -> Coef r -> Poly r n o -> Poly r n o
-leftMult m c = makePoly . Map.map (c *) . Map.mapKeys (m <>) . monMap
