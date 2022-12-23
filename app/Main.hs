@@ -1,3 +1,9 @@
+-------------------------------------------------------------------------------
+-- |
+-- Authors : Tommy Meek and Frank Moore
+--
+-- Driver for polynomial operations and algorithms.
+-------------------------------------------------------------------------------
 module Main where
 
 import Data.Char.SScript (formatSS)

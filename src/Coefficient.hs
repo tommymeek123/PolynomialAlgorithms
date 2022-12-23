@@ -1,3 +1,10 @@
+-------------------------------------------------------------------------------
+-- |
+-- Authors : Tommy Meek and Frank Moore
+--
+-- This is a module for coefficients in a polynomial ring. The types here
+-- should be rings at least. Most will likely be fields.
+-------------------------------------------------------------------------------
 module Coefficient ( Coefficient ) where
 
 import Data.Ratio ((%), numerator, denominator)
@@ -5,12 +12,14 @@ import Data.Ratio ((%), numerator, denominator)
 import qualified RingParams as RP
 import PolyParsers (Readable(..), ratFromString, ratToString)
 
+-- Type synonyms
 type Q = Coefficient RP.Q
 type Fp = Coefficient RP.Fp
 
+-- | A coefficient in a polynomial ring
 data Coefficient :: RP.Ring -> * where
-    Q :: Rational -> Coefficient r
-    Fp :: Coefficient r
+    Q :: Rational -> Coefficient r -- | A rational number
+    Fp :: Coefficient r -- | An element of a finite prime field
     deriving Eq
 
 instance Show Q where

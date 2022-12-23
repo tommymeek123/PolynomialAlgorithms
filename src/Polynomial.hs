@@ -1,11 +1,17 @@
+-------------------------------------------------------------------------------
+-- |
+-- Authors : Tommy Meek and Frank Moore
+--
+-- A module for commutative polynomials.
+-------------------------------------------------------------------------------
 module Polynomial ( Polynomial
                   , isZero
                   , leadCoef
                   , leadMonom
                   , leadMonomP
                   , leadTerm
-                  , totalDegree
                   , multiDegree
+                  , totalDegree
                   ) where
 
 import Data.Maybe (isNothing)
@@ -20,10 +26,12 @@ import qualified DenseMonom as M
 import qualified RingParams as RP
 import PolyParsers (Readable(..), polyTupleListFromString, polyListToString)
 
+-- Type synonyms
 type Coef = C.Coefficient
 type Mon = M.Monomial
 type Poly = Polynomial
 
+-- | A commutative polynomial
 newtype Polynomial :: RP.Ring -> Nat -> RP.MonOrder -> * where
     MakePoly :: { monMap :: Map.Map (Mon n o) (Coef r) } -> Polynomial r n o
 
@@ -59,23 +67,33 @@ leftMult :: (Ord (Mon n o), Num (Coef r), V.Arity n)
              => Mon n o -> Coef r -> Poly r n o -> Poly r n o
 leftMult m c = makePoly . Map.map (c *) . Map.mapKeys (m <>) . monMap
 
+-- | Returns true on the zero polynomial. False otherwise.
 isZero :: Poly r n o -> Bool
 isZero = Map.null . monMap
 
+-- | The lead coefficient of a polynomial.
+leadCoef :: Poly r n o -> Maybe (Coef r)
+leadCoef = fmap snd . Map.lookupMax . monMap
+
+-- | The lead monomial of a polynomial.
 leadMonom :: Poly r n o -> Maybe (Mon n o)
 leadMonom = fmap fst . Map.lookupMax . monMap
 
+-- | The lead term of a polynomial with the coeficient replaced with 1.
 leadMonomP :: Num (Coef r) => Poly r n o -> Maybe (Poly r n o)
 leadMonomP f = case leadMonom f of
     Just m -> fmap Just makePoly $ Map.singleton m (fromInteger 1)
     Nothing -> Nothing
 
-leadCoef :: Poly r n o -> Maybe (Coef r)
-leadCoef = fmap snd . Map.lookupMax . monMap
-
+-- | The lead term of a polynomial.
 leadTerm :: Num (Coef r) => Poly r n o -> Maybe (Poly r n o)
 leadTerm f = liftM2 (makePoly .: Map.singleton) (leadMonom f) (leadCoef f)
 
+-- | A list of the exponents of the variables in the lead monomial.
+multiDegree :: V.Arity n => Poly r n o -> Maybe [Int]
+multiDegree = M.multiDegree . leadMonom
+
+-- | The sum of the exponents of the variables in the lead monomial.
 totalDegree :: V.Arity n => Poly r n o -> Maybe Int
 totalDegree f | isZero f = Nothing
               | otherwise = (Just
@@ -84,6 +102,3 @@ totalDegree f | isZero f = Nothing
                            . Map.keys
                            . monMap) f
     where comp a b = compare (M.totalDegree a) (M.totalDegree b)
-
-multiDegree :: V.Arity n => Poly r n o -> Maybe [Int]
-multiDegree = M.multiDegree . leadMonom

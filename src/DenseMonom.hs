@@ -1,6 +1,14 @@
+-------------------------------------------------------------------------------
+-- |
+-- Authors : Tommy Meek and Frank Moore
+--
+-- This module contains a dense representation of monomials. The data here is
+-- stored as a fixed vector of Ints where the Int at position i represents the
+-- exponent of x_i.
+-------------------------------------------------------------------------------
 module DenseMonom ( Monomial
-                  , totalDegree
                   , multiDegree
+                  , totalDegree
                   ) where
 
 import GHC.TypeLits (Symbol, Nat, KnownNat)
@@ -11,8 +19,10 @@ import qualified Data.Vector.Fixed.Unboxed as UV
 import qualified RingParams as RP
 import PolyParsers (Readable(..), monListFromString, monListToString)
 
+-- Type synonym
 type Mon = Monomial
 
+-- | A commutative monomial. Exponents are stored in a fixed length vector.
 newtype Monomial :: Nat -> RP.MonOrder -> * where
     MakeMon :: { degVec :: UV.Vec n Int } -> Monomial n o
 
@@ -50,9 +60,11 @@ instance (KnownNat n, V.Arity n) => Readable (Mon n o) where
     fromString s = MakeMon { degVec = V.fromList' $ monListFromString nn s }
         where nn = (fromInteger . reflect) (Proxy :: Proxy n)
 
-totalDegree :: V.Arity n => Mon n o -> Int
-totalDegree = V.sum . degVec
-
+-- | A list of the exponents of the variables in a monomial
 multiDegree :: V.Arity n => Maybe (Mon n o) -> Maybe [Int]
 multiDegree Nothing = Nothing
 multiDegree (Just m) = (Just . V.toList . degVec) m
+
+-- | The sum of the exponents of the variables in a monomial
+totalDegree :: V.Arity n => Mon n o -> Int
+totalDegree = V.sum . degVec
