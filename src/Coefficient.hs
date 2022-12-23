@@ -18,8 +18,8 @@ type Fp = Coefficient RP.Fp
 
 -- | A coefficient in a polynomial ring
 data Coefficient :: RP.Ring -> * where
-    Q :: Rational -> Coefficient r -- | A rational number
-    Fp :: Coefficient r -- | An element of a finite prime field
+    Q :: Rational -> Coefficient r
+    Fp :: Coefficient r
     deriving Eq
 
 instance Show Q where
