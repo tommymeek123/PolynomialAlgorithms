@@ -4,8 +4,8 @@
 --
 -- Simple types indicating the parameters of our polynomial ring
 -------------------------------------------------------------------------------
-module RingParams ( Ring
-                  , MonOrder
+module RingParams ( Ring(..)
+                  , MonOrder(..)
                   ) where
 
 -- | The base ring used as coefficients for polynomials
