@@ -1,5 +1,5 @@
 cabal-version:      2.4
-name:               grobner-bases-and-monads
+name:               polynomial-algorithms
 version:            0.1.0.0
 license:            MIT
 author:             Frank Moore and Tommy Meek
@@ -32,7 +32,7 @@ library
 executable buchberger
     main-is:              Main.hs
     build-depends:        base ^>=4.16.3.0
-                        , grobner-bases-and-monads
+                        , polynomial-algorithms
                         , sscript
     default-extensions:   DataKinds
     hs-source-dirs:       app
