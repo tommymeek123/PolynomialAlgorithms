@@ -65,6 +65,14 @@ instance (KnownNat n, V.Arity n) => Readable (Mon n o) where
 divides :: V.Arity n => Mon n o -> Mon n o -> Bool
 a `divides` b = V.and $ V.zipWith (<=) (degVec a) (degVec b)
 
+-- | The GCD of two monomials
+--gcd :: V.Arity n => Mon n o -> Mon n o -> Mon n o
+--gcd a b =
+
+-- | Given monomials a and b, returns a monomial d such that b = ad
+--factor :: V.Arity n => Mon n o -> Mon n o -> Maybe (Mon n o)
+--factor a b =
+
 -- | A list of the exponents of the variables in a monomial
 multiDegree :: V.Arity n => Maybe (Mon n o) -> Maybe [Int]
 multiDegree Nothing = Nothing
