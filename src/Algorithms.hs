@@ -4,9 +4,9 @@
 --
 -- A module for polynomial algorithms.
 -------------------------------------------------------------------------------
-module Algorithms ( longDiv
+module Algorithms ( (//)
+                  , longDiv
                   , divides
-                  , (//)
                   ) where
 
 import qualified Data.Vector.Fixed as V
@@ -19,13 +19,17 @@ type Coef = C.Coefficient
 type Mon = M.Monomial
 type Poly = P.Polynomial
 
+--Stubbed
+(//) :: (Ord (Mon n o), Num (Coef r), V.Arity n)
+         => Poly r n o -> [Poly r n o] -> Poly r n o
+_ // _ = fromInteger 0
+
+--Stubbed
 longDiv :: (Ord (Mon n o), Num (Coef r), V.Arity n)
             => Poly r n o -> [Poly r n o] -> (Poly r n o, [Poly r n o])
 longDiv _ _ = (fromInteger 0, [])
 
-divides :: Poly r n o -> Poly r n o -> Bool
+--Stubbed
+divides :: (Ord (Mon n o), Num (Coef r), V.Arity n)
+            => Poly r n o -> Poly r n o -> Bool
 divides _ _ = True
-
-(//) :: (Ord (Mon n o), Num (Coef r), V.Arity n)
-        => Poly r n o -> [Poly r n o] -> Poly r n o
-_ // _ = fromInteger 0

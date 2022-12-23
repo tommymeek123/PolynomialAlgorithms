@@ -7,6 +7,7 @@
 -- exponent of x_i.
 -------------------------------------------------------------------------------
 module DenseMonom ( Monomial
+                  , divides
                   , multiDegree
                   , totalDegree
                   ) where
@@ -59,6 +60,10 @@ instance (KnownNat n, V.Arity n) => Readable (Mon n o) where
     fromString :: forall n o. (KnownNat n, V.Arity n) => String -> Mon n o
     fromString s = MakeMon { degVec = V.fromList' $ monListFromString nn s }
         where nn = (fromInteger . reflect) (Proxy :: Proxy n)
+
+-- | Determines if the first argument divides the second argument
+divides :: V.Arity n => Mon n o -> Mon n o -> Bool
+a `divides` b = V.and $ V.zipWith (<=) (degVec a) (degVec b)
 
 -- | A list of the exponents of the variables in a monomial
 multiDegree :: V.Arity n => Maybe (Mon n o) -> Maybe [Int]

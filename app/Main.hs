@@ -9,7 +9,6 @@ module Main where
 import Data.Char.SScript (formatSS)
 import qualified Polynomial as P
 import qualified RingParams as RP
-import qualified DenseMonom as M
 import qualified Algorithms as A
 import PolyParsers (Readable(..))
 
