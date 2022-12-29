@@ -4,11 +4,10 @@
 --
 -- Driver for polynomial operations and algorithms.
 -------------------------------------------------------------------------------
-module Main where
-
 import Data.Char.SScript (formatSS)
-import qualified Polynomial as P
 import qualified RingParams as RP
+import qualified Polynomial as P
+import qualified DenseMonom as M
 import qualified Algorithms as A
 import PolyParsers (Readable(..))
 
@@ -16,15 +15,41 @@ type R = P.Polynomial RP.Q 13 RP.Lex
 
 main :: IO ()
 main = do
-    let fstring = "-4x_3^4 x_2 x_5^2 - 5 - 2x_9 - 7/2 x_1^2 x_3 x_2^5 x_9^3 + 6 + 6 x_2^4 x_5^3 - 10/3 + 9/3 x_4^9x_3^9x_2^9"
+    let fmstring = "x_13^4 x_2 x_5^2"
+        gmstring = "x_1^4 x_3 x_2^7 x_5^2 x_8 x_7^4"
+        hmstring = "x_2^5"
+        fm = fromString fmstring :: M.Monomial 13 RP.Lex
+        gm = fromString gmstring :: M.Monomial 13 RP.Lex
+        hm = fromString hmstring :: M.Monomial 13 RP.Lex
+        fstring = "-4x_3^4 x_2 x_5^2 - 5 - 2x_9 - 7/2 x_1^2 x_3 x_2^5 x_9^3 + 6 + 6 x_2^4 x_5^3 - 10/3 + 9/3 x_4^9x_3^9x_2^9"
         gstring = "25x_1^4 x_3 x_2^7 x_5^2 x_8 x_7^4 + 7x_3^3 x_2^2 x_5^2 x_8^2 x_7 x_4 + x_5^9x_2^4 x_6^2"
         hstring = "x_1^5 + 2x_1^7 + 2x_9 - 4x_1^8 - 4x_1 + x_1 + 35/15 - 2x_1^4 x_3 x_2^7 x_5^2 x_8 x_7^4"
         f = (fromString fstring) :: R
         g = (fromString gstring) :: R
         h = (fromString hstring) :: R
-    print $ f `A.divides` h
-    print $ f `A.longDiv` [g,h]
-    print $ f A.// [g,h]
+        ffstring = "x_1x_2^2+1"
+        g1string = "x_1x_2+1"
+        g2string = "x_2+1"
+        ff = (fromString ffstring) :: P.Polynomial RP.Q 2 RP.Lex
+        g1 = (fromString ffstring) :: P.Polynomial RP.Q 2 RP.Lex
+        g2 = (fromString ffstring) :: P.Polynomial RP.Q 2 RP.Lex
+    print $ A.reduce ff [g1,g2]
+--    print $ f `A.divides` h
+--    print $ f `A.longDiv` [g,h]
+--    print $ f `A.reduce` [g,h]
+--    print $ P.numTerms f
+--    print $ P.numTerms g
+--    print $ P.numTerms h
+--    print $ P.numTerms (fromInteger 0 `P.scale` h)
+--    putStrLn $ "f = " ++ (formatSS . show) f
+--    putStrLn $ "g = " ++ (formatSS . show) g
+--    putStrLn $ "h = " ++ (formatSS . show) h
+--    putStrLn $ "fm = " ++ (formatSS . show) fm
+--    putStrLn $ "gm = " ++ (formatSS . show) gm
+--    putStrLn $ "hm = " ++ (formatSS . show) hm
+--    putStrLn $ "gcd gm hm = " ++ (formatSS . show) (M.gcdMon gm hm)
+--    putStrLn $ "gm % hm = " ++ (formatSS . show) (M.factor gm hm)
+--    putStrLn $ "hm | gm = " ++ (formatSS . show) (M.divides hm gm)
 
 --main = do
 --    let fmstring = "x_13^4 x_2 x_5^2"

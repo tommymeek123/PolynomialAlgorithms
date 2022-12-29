@@ -5,12 +5,16 @@
 -- A module for commutative polynomials.
 -------------------------------------------------------------------------------
 module Polynomial ( Polynomial
+                  , dropLeadTerm
                   , isZero
                   , leadCoef
                   , leadMonom
-                  , leadMonomP
+                  , leadMonomAsPoly
                   , leadTerm
                   , multiDegree
+                  , numTerms
+                  , scale
+                  , scaleMon
                   , totalDegree
                   ) where
 
@@ -56,8 +60,8 @@ instance (Ord (Mon n o), Readable (Mon n o), Num (Coef r), Readable (Coef r))
 
 instance (Ord (Mon n o), Num (Coef r), V.Arity n) => Num (Poly r n o) where
     f + g = makePoly $ Map.unionWith (+) (monMap f) (monMap g)
-    f * g = Map.foldrWithKey distrOverF (fromInteger 0) (monMap g)
-        where distrOverF m c = (+) (leftMult m c f)
+    f * g = Map.foldrWithKey distributeOver (fromInteger 0) (monMap g)
+        where distributeOver m c = (+) (leftMult m c f)
     abs = id
     signum _ = fromInteger 1
     fromInteger n = makePoly $ Map.singleton mempty (fromInteger n)
@@ -66,6 +70,10 @@ instance (Ord (Mon n o), Num (Coef r), V.Arity n) => Num (Poly r n o) where
 leftMult :: (Ord (Mon n o), Num (Coef r), V.Arity n)
              => Mon n o -> Coef r -> Poly r n o -> Poly r n o
 leftMult m c = makePoly . Map.map (c *) . Map.mapKeys (m <>) . monMap
+
+-- | Returns the polynomial sans its lead term.
+dropLeadTerm :: Poly r n o -> Poly r n o
+dropLeadTerm = MakePoly . Map.deleteAt 0 . monMap
 
 -- | Returns true on the zero polynomial. False otherwise.
 isZero :: Poly r n o -> Bool
@@ -80,8 +88,8 @@ leadMonom :: Poly r n o -> Maybe (Mon n o)
 leadMonom = fmap fst . Map.lookupMax . monMap
 
 -- | The lead term of a polynomial with the coeficient replaced with 1.
-leadMonomP :: Num (Coef r) => Poly r n o -> Maybe (Poly r n o)
-leadMonomP f = case leadMonom f of
+leadMonomAsPoly :: Num (Coef r) => Poly r n o -> Maybe (Poly r n o)
+leadMonomAsPoly f = case leadMonom f of
     Just m -> fmap Just makePoly $ Map.singleton m (fromInteger 1)
     Nothing -> Nothing
 
@@ -92,6 +100,18 @@ leadTerm f = liftM2 (makePoly .: Map.singleton) (leadMonom f) (leadCoef f)
 -- | A list of the exponents of the variables in the lead monomial.
 multiDegree :: V.Arity n => Poly r n o -> Maybe [Int]
 multiDegree = M.multiDegree . leadMonom
+
+-- | The number of nonzero terms in a polynomial
+numTerms :: Poly r n o -> Int
+numTerms = Map.size . monMap
+
+-- | Multiplies a polynomial by a scalar value.
+scale :: Num (Coef r) => Coef r -> Poly r n o -> Poly r n o
+scale c = makePoly . Map.map (c *) . monMap
+
+-- | Multiplies a monomial by a scalar value.
+scaleMon :: Num (Coef r) => Coef r -> Mon n o -> Poly r n o
+scaleMon c m = makePoly $ Map.singleton m c
 
 -- | The sum of the exponents of the variables in the lead monomial.
 totalDegree :: V.Arity n => Poly r n o -> Maybe Int
