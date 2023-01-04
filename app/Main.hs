@@ -11,29 +11,41 @@ import qualified DenseMonom as M
 import qualified Algorithms as A
 import PolyParsers (Readable(..))
 
-type R = P.Polynomial RP.Q 13 RP.Lex
+type R = P.Polynomial RP.Q 2 RP.Lex
 
 main :: IO ()
 main = do
-    let fmstring = "x_13^4 x_2 x_5^2"
-        gmstring = "x_1^4 x_3 x_2^7 x_5^2 x_8 x_7^4"
-        hmstring = "x_2^5"
-        fm = fromString fmstring :: M.Monomial 13 RP.Lex
-        gm = fromString gmstring :: M.Monomial 13 RP.Lex
-        hm = fromString hmstring :: M.Monomial 13 RP.Lex
-        fstring = "-4x_3^4 x_2 x_5^2 - 5 - 2x_9 - 7/2 x_1^2 x_3 x_2^5 x_9^3 + 6 + 6 x_2^4 x_5^3 - 10/3 + 9/3 x_4^9x_3^9x_2^9"
-        gstring = "25x_1^4 x_3 x_2^7 x_5^2 x_8 x_7^4 + 7x_3^3 x_2^2 x_5^2 x_8^2 x_7 x_4 + x_5^9x_2^4 x_6^2"
-        hstring = "x_1^5 + 2x_1^7 + 2x_9 - 4x_1^8 - 4x_1 + x_1 + 35/15 - 2x_1^4 x_3 x_2^7 x_5^2 x_8 x_7^4"
-        f = (fromString fstring) :: R
-        g = (fromString gstring) :: R
-        h = (fromString hstring) :: R
-        ffstring = "x_1x_2^2+1"
-        g1string = "x_1x_2+1"
-        g2string = "x_2+1"
-        ff = (fromString ffstring) :: P.Polynomial RP.Q 2 RP.Lex
-        g1 = (fromString ffstring) :: P.Polynomial RP.Q 2 RP.Lex
-        g2 = (fromString ffstring) :: P.Polynomial RP.Q 2 RP.Lex
-    print $ A.reduce ff [g1,g2]
+    let f1string = "x_1x_2^2 + 1"
+        f2string = "x_1^2x_2 + x_1x_2^2 + x_2^2"
+        g1string = "x_1x_2 + 1"
+        g2string = "x_2 + 1"
+        g3string = "x_1x_2 - 1"
+        g4string = "x_2^2 - 1"
+        f1 = (fromString f1string) :: R
+        f2 = (fromString f2string) :: R
+        g1 = (fromString g1string) :: R
+        g2 = (fromString g2string) :: R
+        g3 = (fromString g3string) :: R
+        g4 = (fromString g4string) :: R
+    putStrLn $ "f1 / [g1,g2] = " ++ (formatSS . show) (A.reduce f1 [g1,g2])
+    putStrLn $ "f2 / [g3,g4] = " ++ (formatSS . show) (A.reduce f2 [g3,g4])
+
+--        fmstring = "x_13^4 x_2 x_5^2"
+--        gmstring = "x_1^4 x_3 x_2^7 x_5^2 x_8 x_7^4"
+--        hmstring = "x_2^5"
+--        fm = fromString fmstring :: M.Monomial 13 RP.Lex
+--        gm = fromString gmstring :: M.Monomial 13 RP.Lex
+--        hm = fromString hmstring :: M.Monomial 13 RP.Lex
+--        fstring = "-4x_3^4 x_2 x_5^2 - 5 - 2x_9 - 7/2 x_1^2 x_3 x_2^5 x_9^3 + 6 + 6 x_2^4 x_5^3 - 10/3 + 9/3 x_4^9x_3^9x_2^9"
+--        gstring = "25x_1^4 x_3 x_2^7 x_5^2 x_8 x_7^4 + 7x_3^3 x_2^2 x_5^2 x_8^2 x_7 x_4 + x_5^9x_2^4 x_6^2"
+--        hstring = "x_1^5 + 2x_1^7 + 2x_9 - 4x_1^8 - 4x_1 + x_1 + 35/15 - 2x_1^4 x_3 x_2^7 x_5^2 x_8 x_7^4"
+--        f = (fromString fstring) :: R
+--        g = (fromString gstring) :: R
+--        h = (fromString hstring) :: R
+--        ffstring = "x_1x_2^2 + 1"
+--        g1string = "x_1x_2 + 1"
+--        g2string = "x_2 + 1"
+
 --    print $ f `A.divides` h
 --    print $ f `A.longDiv` [g,h]
 --    print $ f `A.reduce` [g,h]

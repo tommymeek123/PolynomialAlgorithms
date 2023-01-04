@@ -11,6 +11,7 @@ module Polynomial ( Polynomial
                   , leadMonom
                   , leadMonomAsPoly
                   , leadTerm
+                  , leadTermDivs
                   , multiDegree
                   , numTerms
                   , scale
@@ -96,6 +97,19 @@ leadMonomAsPoly f = case leadMonom f of
 -- | The lead term of a polynomial.
 leadTerm :: Num (Coef r) => Poly r n o -> Maybe (Poly r n o)
 leadTerm f = liftM2 (makePoly .: Map.singleton) (leadMonom f) (leadCoef f)
+
+-- | Determines if the lead term of the first argument divides the second.
+leadTermDivs :: V.Arity n => Poly r n o -> Poly r n o -> Bool
+g `leadTermDivs` f = liftBool M.divides (leadMonom g) (leadMonom f)
+
+-- Lifts a binary boolean function to consider Maybes.
+liftBool :: (a -> b -> Bool) -> Maybe a -> Maybe b -> Bool
+liftBool comp ma mb
+    | isNothing ma = False
+    | isNothing mb = False
+    | otherwise = a `comp` b
+        where Just a = ma
+              Just b = mb
 
 -- | A list of the exponents of the variables in the lead monomial.
 multiDegree :: V.Arity n => Poly r n o -> Maybe [Int]

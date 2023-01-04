@@ -68,10 +68,8 @@ divides :: V.Arity n => Mon n o -> Mon n o -> Bool
 a `divides` b = V.and $ V.zipWith (<=) (degVec a) (degVec b)
 
 -- | Given monomials a and b, returns a monomial d such that a = bd
-{- There appears to be a bug with Data.Vector.Fixed.any. I tried reversing
-the logic in this ternary expression, but it always returns Nothing. -}
 factor :: V.Arity n => Mon n o -> Mon n o -> Maybe (Mon n o)
-factor a b = if V.all (>= 0) diff then Just (MakeMon diff) else Nothing
+factor a b = if V.any (< 0) diff then Nothing else Just (MakeMon diff)
     where diff = V.zipWith (-) (degVec a) (degVec b)
 
 -- | The GCD of two monomials
