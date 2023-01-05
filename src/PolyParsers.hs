@@ -13,7 +13,7 @@ module PolyParsers ( Readable(..)
                    , ratFromString
                    , ratToString) where
 
-import Data.List (deleteBy, intercalate, mapAccumL, sort)
+import Data.List (delete, intercalate, mapAccumL, sort)
 import Data.List.Split (splitOn)
 import Data.List.Index (setAt)
 import Data.Char (digitToInt, isSpace)
@@ -58,7 +58,7 @@ becomes the map (1->3, 3->7, 6->1). -}
 monMapFromString :: Int -> String -> Map.IntMap Int
 monMapFromString = Map.fromList .: monTupleListFromString
 
-{- | Convert a string representing a monomial to an association list.
+{- Convert a string representing a monomial to an association list.
 Example: "x_1^3x_3^7x_6" becomes [(1,3), (3,7), (6,1)]. -}
 monTupleListFromString :: Int -> String -> [(Int,Int)]
 monTupleListFromString n = filter (\(k,v) -> k <= n)
@@ -85,18 +85,20 @@ coefficients are the values. Example: x_1^5 + 4x_1^3x_2 - 2x_1x_2^2 + 3x_2
 becomes [(x_1^5,1), (x_1^3x_2,4), (x_1x_2^2,-2), (x_2,3)] -}
 polyTupleListFromString :: String -> [(String, String)]
 polyTupleListFromString [] = []
-polyTupleListFromString s = map (swap . break (=='x'))
+polyTupleListFromString s = map (\(k,v) -> if v == "-" then (k,"-1") else (k,v))
+    . map (swap . break (=='x'))
     . splitOn "+" -- Make a list of terms
     . intercalate "+-" . filter (not . null) . splitOn "-" -- For subtraction
     . filter (not . isSpace) $ s
 
-{- Convert an association list of a polyomial to a string. Inverse of
+{- | Convert an association list of a polyomial to a string. Inverse of
 polyTupleListFromString. -}
 polyListToString :: [String] -> String
 polyListToString [] = "0"
-polyListToString f = let isMonic s = takeWhile (/= 'x') s == "1"
-                         removeOnes s = if length s > 1 && isMonic s
-                                        then tail s
+polyListToString f = let leadCoef = takeWhile (/= 'x')
+                         isMonic s = leadCoef s `elem` ["-1","1"]
+                         removeOnes s = if length s > 2 && isMonic s
+                                        then delete '1' s
                                         else s
     in (intercalate " - " . splitOn " + -" -- Display subtraction
       . intercalate " + " . map removeOnes) f

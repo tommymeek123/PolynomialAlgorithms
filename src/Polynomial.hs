@@ -74,7 +74,7 @@ leftMult m c = makePoly . Map.map (c *) . Map.mapKeys (m <>) . monMap
 
 -- | Returns the polynomial sans its lead term.
 dropLeadTerm :: Poly r n o -> Poly r n o
-dropLeadTerm = MakePoly . Map.deleteAt 0 . monMap
+dropLeadTerm = MakePoly . Map.deleteMax . monMap
 
 -- | Returns true on the zero polynomial. False otherwise.
 isZero :: Poly r n o -> Bool
