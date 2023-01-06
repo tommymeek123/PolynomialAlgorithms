@@ -11,7 +11,6 @@ module Algorithms ( longDiv
                   ) where
 
 import qualified Data.Vector.Fixed as V
-import Control.Monad (join, liftM2, liftM3)
 import Data.List.Index (modifyAt)
 --import Data.Maybe (fromMaybe)
 import qualified Coefficient as C
@@ -62,7 +61,7 @@ reduce f gs = snd $ outerLoop gs (f, 0)
 pUpdate :: (Ord (Mon n o), Fractional (Coef r), V.Arity n)
            => Poly r n o -> Poly r n o -> Poly r n o
 pUpdate p g = p - lth * g
-    where Just lth = p ?/ g
+    where Just lth = p `P.tryDivideByLeadTerm` g
 
 -- r := r + LT(p)
 rUpdate :: (V.Arity n, Num (Coef r), Num (Poly r n o))
@@ -74,18 +73,8 @@ rUpdate p r = r + ltp
 qUpdate :: (V.Arity n, Fractional (Coef r), Num (Poly r n o))
            => Poly r n o -> Poly r n o -> [Poly r n o] -> Int -> [Poly r n o]
 qUpdate p g qs n = modifyAt n (+ lth) qs
-    where Just lth = p ?/ g
+    where Just lth = p `P.tryDivideByLeadTerm` g
 
--- f ?/ g = LT(f)/LT(g)
-(?/) :: (Fractional (Coef r), V.Arity n)
-        => Poly r n o -> Poly r n o -> Maybe (Poly r n o)
-f ?/ g = liftM3 scaleFrac (P.leadCoef f) (P.leadCoef g) underlap
-    where underlap = liftJoin2 M.factor (P.leadMonom f) (P.leadMonom g)
-          scaleFrac n d m = (n / d) `P.scaleMon` m
-
--- Ganked from Control.Monad.HT
-liftJoin2 :: (Monad m) => (a -> b -> m c) -> m a -> m b -> m c
-liftJoin2 f ma mb = join (liftM2 f ma mb)
 
 
 

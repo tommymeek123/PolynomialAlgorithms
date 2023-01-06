@@ -17,10 +17,12 @@ module Polynomial ( Polynomial
                   , scale
                   , scaleMon
                   , totalDegree
+                  , tryDivideByMon
+                  , tryDivideByLeadTerm
                   ) where
 
 import Data.Maybe (isNothing)
-import Control.Monad (liftM2)
+import Control.Monad (join, liftM2, liftM3)
 import Data.Composition ((.:))
 import Data.Foldable (maximumBy)
 import GHC.TypeLits (Nat)
@@ -115,9 +117,19 @@ liftBool comp ma mb
 multiDegree :: V.Arity n => Poly r n o -> Maybe [Int]
 multiDegree = M.multiDegree . leadMonom
 
--- | The number of nonzero terms in a polynomial
+-- | The number of nonzero terms in a polynomial.
 numTerms :: Poly r n o -> Int
 numTerms = Map.size . monMap
+
+-- | Maps a function of monomials over every term in a given polynomial.
+pmap :: (Ord (Mon n o), Num (Coef r))
+        => (Mon n o -> Mon n o) -> Poly r n o -> Poly r n o
+pmap f p = makePoly $ Map.mapKeys f (monMap p)
+
+-- | Works like pmap but returns Nothing if any of the terms return Nothing.
+pmapM :: (Ord (Mon n o), Num (Coef r))
+         => (Mon n o -> Maybe (Mon n o)) -> Poly r n o -> Maybe (Poly r n o)
+pmapM f p = -- use Map.foldrWithKey
 
 -- | Multiplies a polynomial by a scalar value.
 scale :: Num (Coef r) => Coef r -> Poly r n o -> Poly r n o
@@ -126,6 +138,12 @@ scale c = makePoly . Map.map (c *) . monMap
 -- | Multiplies a monomial by a scalar value.
 scaleMon :: Num (Coef r) => Coef r -> Mon n o -> Poly r n o
 scaleMon c m = makePoly $ Map.singleton m c
+
+-- | The S-polynomial, or overlap relation, of two given polynomials.
+--sPoly :: (Fractional (Coef r), V.Arity n)
+--         => Poly r n o -> Poly r n o -> Maybe (Poly r n o)
+--sPoly f g =
+--    where lcm = M.lcmMonM (leadMonom f) (leadMonom g)
 
 -- | The sum of the exponents of the variables in the lead monomial.
 totalDegree :: V.Arity n => Poly r n o -> Maybe Int
@@ -136,3 +154,18 @@ totalDegree f | isZero f = Nothing
                            . Map.keys
                            . monMap) f
     where comp a b = compare (M.totalDegree a) (M.totalDegree b)
+
+--stubbed
+tryDivideByMon :: V.Arity n => Poly r n o -> Mon n o -> Maybe (Poly r n o)
+f `tryDivideByMon` m = Just f --Map.mapKeys (`M.factor` m) (monMap f)
+
+--not right
+tryDivideByLeadTerm :: (Fractional (Coef r), V.Arity n)
+        => Poly r n o -> Poly r n o -> Maybe (Poly r n o)
+f `tryDivideByLeadTerm` g = liftM3 scaleFrac (leadCoef f) (leadCoef g) underlap
+    where underlap = liftJoin2 M.factor (leadMonom f) (leadMonom g)
+          scaleFrac n d m = (n / d) `scaleMon` m
+
+-- Ganked from Control.Monad.HT
+liftJoin2 :: (Monad m) => (a -> b -> m c) -> m a -> m b -> m c
+liftJoin2 f ma mb = join (liftM2 f ma mb)
