@@ -21,7 +21,7 @@ module Polynomial ( Polynomial
                   , tryDivideByLeadTerm
                   ) where
 
-import Data.Maybe (isNothing)
+import Data.Maybe (fromMaybe, isNothing)
 import Control.Monad (join, liftM2, liftM3)
 import Data.Composition ((.:))
 import Data.Foldable (maximumBy)
@@ -46,9 +46,6 @@ deriving instance V.Arity n => Eq (Poly r n o)
 
 makePoly :: Num (Coef r) => Map.Map (Mon n o) (Coef r) -> Poly r n o
 makePoly = MakePoly . Map.filter (/= (fromInteger 0))
-
---tryMakePoly :: Num (Coef r) => Map.Map (Maybe (Mon n o)) (Coef r) -> Maybe (Poly r n o)
---tryMakePoly = if Map.any MakePoly . Map.filter (/= (fromInteger 0))
 
 instance (Show (Mon n o), Show (Coef r)) => Show (Poly r n o) where
     show = polyListToString
@@ -125,16 +122,19 @@ numTerms :: Poly r n o -> Int
 numTerms = Map.size . monMap
 
 -- | Maps a function of monomials over every term in a given polynomial.
-pmap :: (Ord (Mon n o), Num (Coef r))
-        => (Mon n o -> Mon n o) -> Poly r n o -> Poly r n o
+pmap :: (Ord (Mon n o), Num (Coef r)) => (Mon n o -> Mon n o) -> Poly r n o -> Poly r n o
 pmap f p = makePoly $ Map.mapKeys f (monMap p)
 
 -- | Works like pmap but returns Nothing if any of the terms return Nothing.
---pmapM :: (Ord (Mon n o), Num (Coef r))
---         => (Mon n o -> Maybe (Mon n o)) -> Poly r n o -> Maybe (Poly r n o)
---pmapM f p = -- use Map.foldrWithKey
-
---mapKeys f = fromList . foldrWithKey (\k x xs -> (f k, x) : xs) []
+pmapM :: (Ord (Mon n o), Num (Coef r), V.Arity n)
+         => (Mon n o -> Maybe (Mon n o)) -> Poly r n o -> Maybe (Poly r n o)
+pmapM f p = if any (\(m,_) -> isNothing m) factorList
+            then Nothing
+            else Just
+               . makePoly
+               . Map.fromList
+               . map (\(m,c) -> (fromMaybe mempty m, c)) $ factorList
+    where factorList = Map.foldrWithKey (\m c xs -> (f m, c) : xs) [] (monMap p)
 
 -- | Multiplies a polynomial by a scalar value.
 scale :: Num (Coef r) => Coef r -> Poly r n o -> Poly r n o
@@ -160,16 +160,24 @@ totalDegree f | isZero f = Nothing
                            . monMap) f
     where comp a b = compare (M.totalDegree a) (M.totalDegree b)
 
---stubbed
-tryDivideByMon :: V.Arity n => Poly r n o -> Mon n o -> Maybe (Poly r n o)
-f `tryDivideByMon` m = Just f --Map.mapKeys (`M.factor` m) (monMap f)
+-- | Divides a polynomial by a monomial
+tryDivideByMon :: (Ord (Mon n o), Num (Coef r), V.Arity n)
+                  => Poly r n o -> Mon n o -> Maybe (Poly r n o)
+f `tryDivideByMon` m = pmapM (`M.factor` m) f
 
---not right
-tryDivideByLeadTerm :: (Fractional (Coef r), V.Arity n)
-        => Poly r n o -> Poly r n o -> Maybe (Poly r n o)
-f `tryDivideByLeadTerm` g = liftM3 scaleFrac (leadCoef f) (leadCoef g) underlap
-    where underlap = liftJoin2 M.factor (leadMonom f) (leadMonom g)
-          scaleFrac n d m = (n / d) `scaleMon` m
+-- | Divides a polynomial by the lead term of another polynomial
+tryDivideByLeadTerm :: (Ord (Mon n o), Fractional (Coef r), V.Arity n)
+                       => Poly r n o -> Poly r n o -> Maybe (Poly r n o)
+f `tryDivideByLeadTerm` g = liftM2 scaleDown (leadCoef g) fDividedByTheLeadMonomialOfG
+    where scaleDown c = scale (recip c)
+          fDividedByTheLeadMonomialOfG = leadMonom g >>= (f `tryDivideByMon`)
+
+-- f `tryDivideByLeadTerm` g := LT(f)/LT(g)
+--tryDivideByLeadTerm :: (Fractional (Coef r), V.Arity n)
+--                       => Poly r n o -> Poly r n o -> Maybe (Poly r n o)
+--f `tryDivideByLeadTerm` g = liftM3 scaleFrac (leadCoef f) (leadCoef g) underlap
+--    where underlap = liftJoin2 M.factor (leadMonom f) (leadMonom g)
+--          scaleFrac n d m = (n / d) `scaleMon` m
 
 -- Ganked from Control.Monad.HT
 liftJoin2 :: (Monad m) => (a -> b -> m c) -> m a -> m b -> m c

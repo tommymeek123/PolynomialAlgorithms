@@ -61,7 +61,8 @@ reduce f gs = snd $ outerLoop gs (f, 0)
 pUpdate :: (Ord (Mon n o), Fractional (Coef r), V.Arity n)
            => Poly r n o -> Poly r n o -> Poly r n o
 pUpdate p g = p - lth * g
-    where Just lth = p `P.tryDivideByLeadTerm` g
+    where Just ltp = P.leadTerm p
+          Just lth = ltp `P.tryDivideByLeadTerm` g
 
 -- r := r + LT(p)
 rUpdate :: (V.Arity n, Num (Coef r), Num (Poly r n o))
@@ -70,10 +71,11 @@ rUpdate p r = r + ltp
     where Just ltp = P.leadTerm p
 
 -- q := q + LT(p)/LT(g)
-qUpdate :: (V.Arity n, Fractional (Coef r), Num (Poly r n o))
+qUpdate :: (Ord (Mon n o), V.Arity n, Fractional (Coef r))
            => Poly r n o -> Poly r n o -> [Poly r n o] -> Int -> [Poly r n o]
 qUpdate p g qs n = modifyAt n (+ lth) qs
-    where Just lth = p `P.tryDivideByLeadTerm` g
+    where Just ltp = P.leadTerm p
+          Just lth = ltp `P.tryDivideByLeadTerm` g
 
 
 
