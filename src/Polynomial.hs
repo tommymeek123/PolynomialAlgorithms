@@ -47,6 +47,9 @@ deriving instance V.Arity n => Eq (Poly r n o)
 makePoly :: Num (Coef r) => Map.Map (Mon n o) (Coef r) -> Poly r n o
 makePoly = MakePoly . Map.filter (/= (fromInteger 0))
 
+--tryMakePoly :: Num (Coef r) => Map.Map (Maybe (Mon n o)) (Coef r) -> Maybe (Poly r n o)
+--tryMakePoly = if Map.any MakePoly . Map.filter (/= (fromInteger 0))
+
 instance (Show (Mon n o), Show (Coef r)) => Show (Poly r n o) where
     show = polyListToString
          . map (\(m,c) -> show c ++ show m)
@@ -127,9 +130,11 @@ pmap :: (Ord (Mon n o), Num (Coef r))
 pmap f p = makePoly $ Map.mapKeys f (monMap p)
 
 -- | Works like pmap but returns Nothing if any of the terms return Nothing.
-pmapM :: (Ord (Mon n o), Num (Coef r))
-         => (Mon n o -> Maybe (Mon n o)) -> Poly r n o -> Maybe (Poly r n o)
-pmapM f p = -- use Map.foldrWithKey
+--pmapM :: (Ord (Mon n o), Num (Coef r))
+--         => (Mon n o -> Maybe (Mon n o)) -> Poly r n o -> Maybe (Poly r n o)
+--pmapM f p = -- use Map.foldrWithKey
+
+--mapKeys f = fromList . foldrWithKey (\k x xs -> (f k, x) : xs) []
 
 -- | Multiplies a polynomial by a scalar value.
 scale :: Num (Coef r) => Coef r -> Poly r n o -> Poly r n o
