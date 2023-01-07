@@ -16,6 +16,7 @@ module Polynomial ( Polynomial
                   , numTerms
                   , scale
                   , scaleMon
+                  , sPoly
                   , totalDegree
                   , tryDivideByMon
                   , tryDivideByLeadTerm
@@ -64,15 +65,21 @@ instance (Ord (Mon n o), Readable (Mon n o), Num (Coef r), Readable (Coef r))
 instance (Ord (Mon n o), Num (Coef r), V.Arity n) => Num (Poly r n o) where
     f + g = makePoly $ Map.unionWith (+) (monMap f) (monMap g)
     f * g = Map.foldrWithKey distributeOver (fromInteger 0) (monMap g)
-        where distributeOver m c = (+) (leftMult m c f)
+        where distributeOver m c = (+) (leftMultWithCoef m c f)
     abs = id
     signum _ = fromInteger 1
     fromInteger n = makePoly $ Map.singleton mempty (fromInteger n)
     negate = makePoly . Map.map negate . monMap
 
+-- Left multiply a polynomial by a monomial.
 leftMult :: (Ord (Mon n o), Num (Coef r), V.Arity n)
+            => Mon n o -> Poly r n o -> Poly r n o
+leftMult m = makePoly . Map.mapKeys (m <>) . monMap
+
+-- Left multiply a polynomial by a monomial and a coeficient
+leftMultWithCoef :: (Ord (Mon n o), Num (Coef r), V.Arity n)
              => Mon n o -> Coef r -> Poly r n o -> Poly r n o
-leftMult m c = makePoly . Map.map (c *) . Map.mapKeys (m <>) . monMap
+leftMultWithCoef m c = makePoly . Map.map (c *) . Map.mapKeys (m <>) . monMap
 
 -- | Returns the polynomial sans its lead term.
 dropLeadTerm :: Poly r n o -> Poly r n o
@@ -145,10 +152,14 @@ scaleMon :: Num (Coef r) => Coef r -> Mon n o -> Poly r n o
 scaleMon c m = makePoly $ Map.singleton m c
 
 -- | The S-polynomial, or overlap relation, of two given polynomials.
---sPoly :: (Fractional (Coef r), V.Arity n)
---         => Poly r n o -> Poly r n o -> Maybe (Poly r n o)
---sPoly f g =
---    where lcm = M.lcmMonM (leadMonom f) (leadMonom g)
+sPoly :: (Ord (Mon n o), Fractional (Coef r), V.Arity n)
+         => Poly r n o -> Poly r n o -> Maybe (Poly r n o)
+sPoly f g = liftM2 (-) redf redg
+    where lcm = liftM2 M.lcmMon (leadMonom f) (leadMonom g)
+          normalF = liftM2 leftMult lcm (Just f)
+          normalG = liftM2 leftMult lcm (Just g)
+          redf = liftJoin2 tryDivideByLeadTerm normalF (leadTerm f)
+          redg = liftJoin2 tryDivideByLeadTerm normalG (leadTerm g)
 
 -- | The sum of the exponents of the variables in the lead monomial.
 totalDegree :: V.Arity n => Poly r n o -> Maybe Int

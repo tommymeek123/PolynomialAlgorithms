@@ -79,7 +79,7 @@ factor a b = if V.any (< 0) diff then Nothing else Just (MakeMon diff)
 gcdMon :: V.Arity n => Mon n o -> Mon n o -> Mon n o
 gcdMon a b = MakeMon $ V.zipWith (min) (degVec a) (degVec b)
 
--- | The GCD of two Maybe monomials
+-- | Depricated. Use liftM2 gcdMon instead.
 gcdMonM :: V.Arity n => Maybe (Mon n o) -> Maybe (Mon n o) -> Maybe (Mon n o)
 gcdMonM a b = gcdMon <$> a <*> b
 
@@ -87,7 +87,7 @@ gcdMonM a b = gcdMon <$> a <*> b
 lcmMon :: V.Arity n => Mon n o -> Mon n o -> Mon n o
 lcmMon a b = MakeMon $ V.zipWith (max) (degVec a) (degVec b)
 
--- | The LCM of two Maybe monomials
+-- | Depricated. Use liftM2 lcmMon instead.
 lcmMonM :: V.Arity n => Maybe (Mon n o) -> Maybe (Mon n o) -> Maybe (Mon n o)
 lcmMonM a b = lcmMon <$> a <*> b
 
