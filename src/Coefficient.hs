@@ -1,10 +1,10 @@
--------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------
 -- |
 -- Authors : Tommy Meek and Frank Moore
 --
 -- This is a module for coefficients in a polynomial ring. The types here
 -- should be rings at least. Most will likely be fields.
--------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------
 module Coefficient ( Coefficient ) where
 
 import Data.Ratio ((%), numerator, denominator)

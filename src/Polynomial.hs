@@ -1,9 +1,9 @@
--------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------
 -- |
 -- Authors : Tommy Meek and Frank Moore
 --
 -- A module for commutative polynomials.
--------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------
 module Polynomial ( Polynomial
                   , dropLeadTerm
                   , isZero
@@ -46,7 +46,7 @@ newtype Polynomial :: RP.Ring -> Nat -> RP.MonOrder -> * where
 deriving instance V.Arity n => Eq (Poly r n o)
 
 makePoly :: Num (Coef r) => Map.Map (Mon n o) (Coef r) -> Poly r n o
-makePoly = MakePoly . Map.filter (/= (fromInteger 0))
+makePoly = MakePoly . Map.filter (/= 0)
 
 instance (Show (Mon n o), Show (Coef r)) => Show (Poly r n o) where
     show = polyListToString
@@ -64,10 +64,10 @@ instance (Ord (Mon n o), Readable (Mon n o), Num (Coef r), Readable (Coef r))
 
 instance (Ord (Mon n o), Num (Coef r), V.Arity n) => Num (Poly r n o) where
     f + g = makePoly $ Map.unionWith (+) (monMap f) (monMap g)
-    f * g = Map.foldrWithKey distributeOver (fromInteger 0) (monMap g)
+    f * g = Map.foldrWithKey distributeOver 0 (monMap g)
         where distributeOver m c = (+) (leftMultWithCoef m c f)
     abs = id
-    signum _ = fromInteger 1
+    signum _ = 1
     fromInteger n = makePoly $ Map.singleton mempty (fromInteger n)
     negate = makePoly . Map.map negate . monMap
 
@@ -100,7 +100,7 @@ leadMonom = fmap fst . Map.lookupMax . monMap
 -- | The lead term of a polynomial with the coeficient replaced with 1.
 leadMonomAsPoly :: Num (Coef r) => Poly r n o -> Maybe (Poly r n o)
 leadMonomAsPoly f = case leadMonom f of
-    Just m -> fmap Just makePoly $ Map.singleton m (fromInteger 1)
+    Just m -> fmap Just makePoly $ Map.singleton m 1
     Nothing -> Nothing
 
 -- | The lead term of a polynomial.

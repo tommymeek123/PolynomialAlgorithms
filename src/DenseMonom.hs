@@ -1,11 +1,11 @@
--------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------
 -- |
 -- Authors : Tommy Meek and Frank Moore
 --
 -- This module contains a dense representation of monomials. The data here is
 -- stored as a fixed vector of Ints where the Int at position i represents the
 -- exponent of x_i.
--------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------
 module DenseMonom ( Monomial
                   , divides
                   , factor

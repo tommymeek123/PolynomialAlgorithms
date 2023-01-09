@@ -1,10 +1,11 @@
--------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------
 -- |
 -- Authors : Tommy Meek and Frank Moore
 --
 -- A module for polynomial algorithms.
--------------------------------------------------------------------------------
-module Algorithms ( longDiv
+-----------------------------------------------------------------------------------------
+module Algorithms ( gb
+                  , longDiv
                   , reduce
                   , (//)
                   , (/%)
@@ -12,10 +13,11 @@ module Algorithms ( longDiv
 
 import qualified Data.Vector.Fixed as V
 import Data.List.Index (modifyAt)
---import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe)
 import qualified Coefficient as C
 import qualified DenseMonom as M
 import qualified Polynomial as P
+import Debug.Trace (trace, traceShow)
 
 -- Type synonyms
 type Coef = C.Coefficient
@@ -77,8 +79,16 @@ qUpdate p g qs n = modifyAt n (+ lth) qs
     where Just ltp = P.leadTerm p
           Just lth = ltp `P.tryDivideByLeadTerm` g
 
+gb :: (Ord (Mon n o), Fractional (Coef r), V.Arity n, Show (Coef r), Show (Poly r n o)) => [Poly r n o] -> [Poly r n o]
+gb fs = if fs == gs then fs else gb gs
+    where gs = cycle1 (fs, fs)
+          cycle1 ([], gs) = gs
+          cycle1 (fs, gs) = cycle1 ((tail fs), (cycle2 (head fs) (tail fs, gs)))
 
-
+cycle2 f ([], gs) = gs
+cycle2 f (fs, gs) = cycle2 (trace ("\nf = " ++ show f ++ "\nfs == " ++ show fs ++ "\ngs = " ++ show gs) f) (tail fs ++ newPoly, gs ++ newPoly)
+    where r = fromMaybe 0 (P.sPoly f (head fs)) /% gs
+          newPoly = if r /= 0 then trace ("r = " ++ show r) [r] else []
 
 --g `leadMonDivs` f = lmg `M.divides` lmf
 --    where Just lmf = P.leadMonom f
