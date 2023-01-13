@@ -64,7 +64,7 @@ pUpdate :: (Ord (Mon n o), Fractional (Coef r), V.Arity n)
            => Poly r n o -> Poly r n o -> Poly r n o
 pUpdate p g = p - lth * g
     where Just ltp = P.leadTerm p
-          Just lth = ltp `P.tryDivideByLeadTerm` g
+          Just lth = ltp `P.divideByLeadTerm` g
 
 -- r := r + LT(p)
 rUpdate :: (V.Arity n, Num (Coef r), Num (Poly r n o))
@@ -77,18 +77,36 @@ qUpdate :: (Ord (Mon n o), V.Arity n, Fractional (Coef r))
            => Poly r n o -> Poly r n o -> [Poly r n o] -> Int -> [Poly r n o]
 qUpdate p g qs n = modifyAt n (+ lth) qs
     where Just ltp = P.leadTerm p
-          Just lth = ltp `P.tryDivideByLeadTerm` g
+          Just lth = ltp `P.divideByLeadTerm` g
 
-gb :: (Ord (Mon n o), Fractional (Coef r), V.Arity n, Show (Coef r), Show (Poly r n o)) => [Poly r n o] -> [Poly r n o]
+-- | Implementation of Buchburger's algorithm to find a Groebner basis.
+--gb :: (Ord (Mon n o), Fractional (Coef r), V.Arity n) => [Poly r n o] -> [Poly r n o]
+--gb fs = if fs == gs then fs else gb gs
+--    where gs = cycle1 (fs, fs)
+--          cycle1 ([], gs) = gs
+--          cycle1 (fs, gs) = cycle1 ((tail fs), (cycle2 (head fs) (tail fs, gs)))
+--          cycle2 f ([], gs) = gs
+--          cycle2 f (fs, gs) = cycle2 f (tail fs ++ newPoly, gs ++ newPoly)
+--              where r = fromMaybe 0 (P.sPoly f (head fs)) /% gs
+--                    newPoly = if r /= 0 then [r] else []
+
+-- | Implementation of Buchburger's algorithm to find a Groebner basis.
+gb :: (Ord (Mon n o), Fractional (Coef r), V.Arity n) => [Poly r n o] -> [Poly r n o]
 gb fs = if fs == gs then fs else gb gs
-    where gs = cycle1 (fs, fs)
+    where startingPairs = [(m,n) | n <- [0..length fs - 1], m <- [0..n-1]]
+          gs = cycle1 (startingPairs, fs)
           cycle1 ([], gs) = gs
-          cycle1 (fs, gs) = cycle1 ((tail fs), (cycle2 (head fs) (tail fs, gs)))
+          cycle1 (pairs, gs) = cycle1 (tail pairs ++ newPairs, gs ++ newPoly)
+              where g1 = gs !! fst (head pairs)
+                    g2 = gs !! snd (head pairs)
+                    r = fromMaybe 0 (P.sPoly g1 g2) /% gs
+                    newPoly = if r /= 0 then [r] else []
+                    newPairs = if r /= 0
+                               then [(m,length gs - 1) | m <- [0..length gs - 2]]
+                               else []
 
-cycle2 f ([], gs) = gs
-cycle2 f (fs, gs) = cycle2 (trace ("\nf = " ++ show f ++ "\nfs == " ++ show fs ++ "\ngs = " ++ show gs) f) (tail fs ++ newPoly, gs ++ newPoly)
-    where r = fromMaybe 0 (P.sPoly f (head fs)) /% gs
-          newPoly = if r /= 0 then trace ("r = " ++ show r) [r] else []
+
+
 
 --g `leadMonDivs` f = lmg `M.divides` lmf
 --    where Just lmf = P.leadMonom f
@@ -105,12 +123,13 @@ cycle2 f (fs, gs) = cycle2 (trace ("\nf = " ++ show f ++ "\nfs == " ++ show fs +
 --          Just lcg = P.leadCoef g
 --          Just lmf = P.leadMonom f
 --          Just lmg = P.leadMonom g
---          Just lmh = lmf `M.factor` lmg
+--          Just lmh = lmf `M.divideBy` lmg
 
---applyWhen :: (b -> a -> Bool) -> (a -> b -> a) -> (a -> a -> a) -> (a -> a) -> [b] -> (a,a) -> (a,a)
+--applyWhen :: (b -> a -> Bool) -> (a -> b -> a) -> (a -> a -> a) -> (a -> a)
+--             -> [b] -> (a,a) -> (a,a)
 --applyWhen _ _ f1 f2 [] (x1,x2) = (f1 x1 x2, f2 x1)
 --applyWhen pred f0 f1 f2 ys (x1,x2) = if (pred (head ys) x1)
 --                                     then (f0 x1 (head ys), x2)
 --                                     else applyWhen pred f0 f1 f2 (tail ys) (x1,x2)
 
---head . dropWhile isNothing . map (factor leadMonom p)
+--head . dropWhile isNothing . map (divideBy leadMonom p)(

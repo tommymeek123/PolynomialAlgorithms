@@ -6,6 +6,7 @@
 -----------------------------------------------------------------------------------------
 module Polynomial ( Polynomial
                   , dropLeadTerm
+                  , fromMap
                   , isZero
                   , leadCoef
                   , leadMonom
@@ -18,12 +19,12 @@ module Polynomial ( Polynomial
                   , scaleMon
                   , sPoly
                   , totalDegree
-                  , tryDivideByMon
-                  , tryDivideByLeadTerm
+                  , divideByMon
+                  , divideByLeadTerm
                   ) where
 
 import Data.Maybe (fromMaybe, isNothing)
-import Control.Monad (join, liftM2, liftM3)
+--import Control.Monad (liftM)
 import Data.Composition ((.:))
 import Data.Foldable (maximumBy)
 import GHC.TypeLits (Nat)
@@ -56,7 +57,7 @@ instance (Show (Mon n o), Show (Coef r)) => Show (Poly r n o) where
          . monMap
 
 instance (Ord (Mon n o), Readable (Mon n o), Num (Coef r), Readable (Coef r))
-          => Readable (Poly r n o) where
+         => Readable (Poly r n o) where
     fromString = makePoly
                . Map.fromListWith (+)
                . map (\(ms,cs) -> (fromString ms, fromString cs))
@@ -71,19 +72,18 @@ instance (Ord (Mon n o), Num (Coef r), V.Arity n) => Num (Poly r n o) where
     fromInteger n = makePoly $ Map.singleton mempty (fromInteger n)
     negate = makePoly . Map.map negate . monMap
 
--- Left multiply a polynomial by a monomial.
-leftMult :: (Ord (Mon n o), Num (Coef r), V.Arity n)
-            => Mon n o -> Poly r n o -> Poly r n o
-leftMult m = makePoly . Map.mapKeys (m <>) . monMap
-
--- Left multiply a polynomial by a monomial and a coeficient
-leftMultWithCoef :: (Ord (Mon n o), Num (Coef r), V.Arity n)
-             => Mon n o -> Coef r -> Poly r n o -> Poly r n o
-leftMultWithCoef m c = makePoly . Map.map (c *) . Map.mapKeys (m <>) . monMap
+-- | Returns a monomial as a single term polynomial.
+asPoly :: Num (Coef r) => Mon n o -> Poly r n o
+asPoly m = MakePoly $ Map.singleton m 1
 
 -- | Returns the polynomial sans its lead term.
 dropLeadTerm :: Poly r n o -> Poly r n o
 dropLeadTerm = MakePoly . Map.deleteMax . monMap
+
+-- | Creates a polynomial from a map to Strings representing the coefficients.
+fromMap :: (V.Arity n, Num (Coef r), Readable (Coef r), Ord (Mon n o))
+           => Map.Map [Int] String -> Poly r n o
+fromMap = makePoly . Map.map fromString . Map.mapKeys M.fromList
 
 -- | Returns true on the zero polynomial. False otherwise.
 isZero :: Poly r n o -> Bool
@@ -105,11 +105,21 @@ leadMonomAsPoly f = case leadMonom f of
 
 -- | The lead term of a polynomial.
 leadTerm :: Num (Coef r) => Poly r n o -> Maybe (Poly r n o)
-leadTerm f = liftM2 (makePoly .: Map.singleton) (leadMonom f) (leadCoef f)
+leadTerm f = (makePoly .: Map.singleton) <$> (leadMonom f) <*> (leadCoef f)
 
 -- | Determines if the lead term of the first argument divides the second.
 leadTermDivs :: V.Arity n => Poly r n o -> Poly r n o -> Bool
 g `leadTermDivs` f = liftBool M.divides (leadMonom g) (leadMonom f)
+
+-- Left multiply a polynomial by a monomial.
+leftMult :: (Ord (Mon n o), Num (Coef r), V.Arity n)
+            => Mon n o -> Poly r n o -> Poly r n o
+leftMult m = makePoly . Map.mapKeys (m <>) . monMap
+
+-- Left multiply a polynomial by a monomial and a coeficient
+leftMultWithCoef :: (Ord (Mon n o), Num (Coef r), V.Arity n)
+                    => Mon n o -> Coef r -> Poly r n o -> Poly r n o
+leftMultWithCoef m c = makePoly . Map.map (c *) . Map.mapKeys (m <>) . monMap
 
 -- Lifts a binary boolean function to consider Maybes.
 liftBool :: (a -> b -> Bool) -> Maybe a -> Maybe b -> Bool
@@ -152,14 +162,34 @@ scaleMon :: Num (Coef r) => Coef r -> Mon n o -> Poly r n o
 scaleMon c m = makePoly $ Map.singleton m c
 
 -- | The S-polynomial, or overlap relation, of two given polynomials.
+--sPoly :: (Ord (Mon n o), Fractional (Coef r), V.Arity n)
+--         => Poly r n o -> Poly r n o -> Maybe (Poly r n o)
+--sPoly f g = liftM2 (-) redf redg
+--    where lcm = liftM2 M.lcmMon (leadMonom f) (leadMonom g)
+--          normalF = liftM2 leftMult lcm (Just f)
+--          normalG = liftM2 leftMult lcm (Just g)
+--          redf = liftJoin2 divideByLeadTerm normalF (leadTerm f)
+--          redg = liftJoin2 divideByLeadTerm normalG (leadTerm g)
+
+-- | The S-polynomial, or overlap relation, of two given polynomials.
+--sPoly :: (Ord (Mon n o), Fractional (Coef r), V.Arity n)
+--         => Poly r n o -> Poly r n o -> Maybe (Poly r n o)
+--sPoly f g = (-) <$> redf <*> redg
+--    where lcm = M.lcmMon <$> (leadMonom f) <*> (leadMonom g)
+--          normalF = leftMult <$> lcm <*> (Just f)
+--          normalG = leftMult <$> lcm <*> (Just g)
+--          redf = divideByLeadTerm <$> normalF <*> (leadTerm f) >>= id
+--          redg = divideByLeadTerm <$> normalG <*> (leadTerm g) >>= id
+
+-- | The S-polynomial, or overlap relation, of two given polynomials.
 sPoly :: (Ord (Mon n o), Fractional (Coef r), V.Arity n)
          => Poly r n o -> Poly r n o -> Maybe (Poly r n o)
-sPoly f g = liftM2 (-) redf redg
-    where lcm = liftM2 M.lcmMon (leadMonom f) (leadMonom g)
-          normalF = liftM2 leftMult lcm (Just f)
-          normalG = liftM2 leftMult lcm (Just g)
-          redf = liftJoin2 tryDivideByLeadTerm normalF (leadTerm f)
-          redg = liftJoin2 tryDivideByLeadTerm normalG (leadTerm g)
+sPoly f g = (-) <$> redf <*> redg
+    where lcm = M.lcmMon <$> leadMonom f <*> leadMonom g
+          fNormalizer = divideByLeadTerm <$> fmap asPoly lcm <*> leadTerm f >>= id
+          gNormalizer = divideByLeadTerm <$> fmap asPoly lcm <*> leadTerm g >>= id
+          redf = (*) <$> fNormalizer <*> Just f
+          redg = (*) <$> gNormalizer <*> Just g
 
 -- | The sum of the exponents of the variables in the lead monomial.
 totalDegree :: V.Arity n => Poly r n o -> Maybe Int
@@ -172,24 +202,20 @@ totalDegree f | isZero f = Nothing
     where comp a b = compare (M.totalDegree a) (M.totalDegree b)
 
 -- | Divides a polynomial by a monomial
-tryDivideByMon :: (Ord (Mon n o), Num (Coef r), V.Arity n)
+divideByMon :: (Ord (Mon n o), Num (Coef r), V.Arity n)
                   => Poly r n o -> Mon n o -> Maybe (Poly r n o)
-f `tryDivideByMon` m = pmapM (`M.factor` m) f
+f `divideByMon` m = pmapM (`M.divideBy` m) f
 
 -- | Divides a polynomial by the lead term of another polynomial
-tryDivideByLeadTerm :: (Ord (Mon n o), Fractional (Coef r), V.Arity n)
+divideByLeadTerm :: (Ord (Mon n o), Fractional (Coef r), V.Arity n)
                        => Poly r n o -> Poly r n o -> Maybe (Poly r n o)
-f `tryDivideByLeadTerm` g = liftM2 scaleDown (leadCoef g) fDividedByTheLeadMonomialOfG
+f `divideByLeadTerm` g = scaleDown <$> (leadCoef g) <*> q
     where scaleDown c = scale (recip c)
-          fDividedByTheLeadMonomialOfG = leadMonom g >>= (f `tryDivideByMon`)
+          q = leadMonom g >>= (f `divideByMon`)
 
--- f `tryDivideByLeadTerm` g := LT(f)/LT(g)
---tryDivideByLeadTerm :: (Fractional (Coef r), V.Arity n)
+-- f `divideByLeadTerm` g := LT(f)/LT(g)
+--divideByLeadTerm :: (Fractional (Coef r), V.Arity n)
 --                       => Poly r n o -> Poly r n o -> Maybe (Poly r n o)
---f `tryDivideByLeadTerm` g = liftM3 scaleFrac (leadCoef f) (leadCoef g) underlap
---    where underlap = liftJoin2 M.factor (leadMonom f) (leadMonom g)
+--f `divideByLeadTerm` g = liftM3 scaleFrac (leadCoef f) (leadCoef g) underlap
+--    where underlap = liftJoin2 M.divideBy (leadMonom f) (leadMonom g)
 --          scaleFrac n d m = (n / d) `scaleMon` m
-
--- Ganked from Control.Monad.HT
-liftJoin2 :: (Monad m) => (a -> b -> m c) -> m a -> m b -> m c
-liftJoin2 f ma mb = join (liftM2 f ma mb)

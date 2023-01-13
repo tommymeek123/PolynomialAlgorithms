@@ -60,13 +60,13 @@ monMapFromString = Map.fromList .: monTupleListFromString
 
 {- Convert a string representing a monomial to an association list.
 Example: "x_1^3x_3^7x_6" becomes [(1,3), (3,7), (6,1)]. -}
--- TODO: handle mempty
 monTupleListFromString :: Int -> String -> [(Int,Int)]
-monTupleListFromString n = filter (\(k,v) -> k <= n)
+monTupleListFromString n "1" = []
+monTupleListFromString n s = filter (\(k,v) -> k <= n)
     . map (\s -> (k s, v s))
     . filter (not . null)
     . splitOn "x_"
-    . filter (not . isSpace)
+    . filter (not . isSpace) $ s
     where k s = (read . takeWhile (/= '^')) s
           v s = if '^' `elem` s
                 then (read . tail . dropWhile (/= '^')) s
@@ -74,8 +74,8 @@ monTupleListFromString n = filter (\(k,v) -> k <= n)
 
 {- | Convert the exponent list of a monomial to a string. Inverse of
 monListFromString. -}
--- TODO: handle mempty
 monListToString :: [Int] -> String
+monListToString [] = "1"
 monListToString xs = concat . snd $ mapAccumL f 1 xs
     where f n x | x == 0 = (n+1, "")
                 | x == 1 = (n+1, "x_" ++ show n)

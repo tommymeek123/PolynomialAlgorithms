@@ -8,11 +8,10 @@
 -----------------------------------------------------------------------------------------
 module DenseMonom ( Monomial
                   , divides
-                  , factor
+                  , divideBy
+                  , fromList
                   , gcdMon
-                  , gcdMonM
                   , lcmMon
-                  , lcmMonM
                   , multiDegree
                   , totalDegree
                   ) where
@@ -71,25 +70,21 @@ divides :: V.Arity n => Mon n o -> Mon n o -> Bool
 a `divides` b = V.and $ V.zipWith (<=) (degVec a) (degVec b)
 
 -- | Given monomials a and b, returns a monomial d such that a = bd
-factor :: V.Arity n => Mon n o -> Mon n o -> Maybe (Mon n o)
-factor a b = if V.any (< 0) diff then Nothing else Just (MakeMon diff)
+divideBy :: V.Arity n => Mon n o -> Mon n o -> Maybe (Mon n o)
+divideBy a b = if V.any (< 0) diff then Nothing else Just (MakeMon diff)
     where diff = V.zipWith (-) (degVec a) (degVec b)
+
+-- | Creates a monomial from a list of exponents.
+fromList :: V.Arity n => [Int] -> Mon n o
+fromList = MakeMon . V.fromList
 
 -- | The GCD of two monomials
 gcdMon :: V.Arity n => Mon n o -> Mon n o -> Mon n o
 gcdMon a b = MakeMon $ V.zipWith (min) (degVec a) (degVec b)
 
--- | Depricated. Use liftM2 gcdMon instead.
-gcdMonM :: V.Arity n => Maybe (Mon n o) -> Maybe (Mon n o) -> Maybe (Mon n o)
-gcdMonM a b = gcdMon <$> a <*> b
-
 -- | The LCM of two monomials
 lcmMon :: V.Arity n => Mon n o -> Mon n o -> Mon n o
 lcmMon a b = MakeMon $ V.zipWith (max) (degVec a) (degVec b)
-
--- | Depricated. Use liftM2 lcmMon instead.
-lcmMonM :: V.Arity n => Maybe (Mon n o) -> Maybe (Mon n o) -> Maybe (Mon n o)
-lcmMonM a b = lcmMon <$> a <*> b
 
 -- | A list of the exponents of the variables in a monomial
 multiDegree :: V.Arity n => Maybe (Mon n o) -> Maybe [Int]
