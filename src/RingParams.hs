@@ -12,4 +12,4 @@ module RingParams ( Ring(..)
 data Ring = Q | Fp deriving (Eq,Read,Show)
 
 -- | The Monomial ordering used in our polynomial ring
-data MonOrder = Lex | Glex | GRevLex deriving (Eq,Read,Show)
+data MonOrder = Lex | GLex | GRevLex deriving (Eq,Read,Show)

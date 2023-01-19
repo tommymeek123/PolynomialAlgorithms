@@ -14,6 +14,7 @@ module Polynomial ( Polynomial
                   , leadTerm
                   , leadTermDivs
                   , multiDegree
+                  , normalize
                   , numTerms
                   , scale
                   , scaleMon
@@ -109,7 +110,7 @@ leadTerm f = (makePoly .: Map.singleton) <$> (leadMonom f) <*> (leadCoef f)
 
 -- | Determines if the lead term of the first argument divides the second.
 leadTermDivs :: V.Arity n => Poly r n o -> Poly r n o -> Bool
-g `leadTermDivs` f = liftBool M.divides (leadMonom g) (leadMonom f)
+g `leadTermDivs` f = fromMaybe False $ M.divides <$> leadMonom g <*> leadMonom f
 
 -- Left multiply a polynomial by a monomial.
 leftMult :: (Ord (Mon n o), Num (Coef r), V.Arity n)
@@ -121,7 +122,7 @@ leftMultWithCoef :: (Ord (Mon n o), Num (Coef r), V.Arity n)
                     => Mon n o -> Coef r -> Poly r n o -> Poly r n o
 leftMultWithCoef m c = makePoly . Map.map (c *) . Map.mapKeys (m <>) . monMap
 
--- Lifts a binary boolean function to consider Maybes.
+-- Lift a binary boolean function to consider Maybes. Depricated. Use aplicative instead.
 liftBool :: (a -> b -> Bool) -> Maybe a -> Maybe b -> Bool
 liftBool comp ma mb
     | isNothing ma = False
@@ -133,6 +134,10 @@ liftBool comp ma mb
 -- | A list of the exponents of the variables in the lead monomial.
 multiDegree :: V.Arity n => Poly r n o -> Maybe [Int]
 multiDegree = M.multiDegree . leadMonom
+
+-- | Normalizes a polynomial to have a lead coefficient of 1.
+normalize :: (Ord (Mon n o), Fractional (Coef r), V.Arity n) => Poly r n o -> Poly r n o
+normalize f = fromMaybe 0 $ scale <$> (recip <$> leadCoef f) <*> Just f
 
 -- | The number of nonzero terms in a polynomial.
 numTerms :: Poly r n o -> Int
@@ -160,26 +165,6 @@ scale c = makePoly . Map.map (c *) . monMap
 -- | Multiplies a monomial by a scalar value.
 scaleMon :: Num (Coef r) => Coef r -> Mon n o -> Poly r n o
 scaleMon c m = makePoly $ Map.singleton m c
-
--- | The S-polynomial, or overlap relation, of two given polynomials.
---sPoly :: (Ord (Mon n o), Fractional (Coef r), V.Arity n)
---         => Poly r n o -> Poly r n o -> Maybe (Poly r n o)
---sPoly f g = liftM2 (-) redf redg
---    where lcm = liftM2 M.lcmMon (leadMonom f) (leadMonom g)
---          normalF = liftM2 leftMult lcm (Just f)
---          normalG = liftM2 leftMult lcm (Just g)
---          redf = liftJoin2 divideByLeadTerm normalF (leadTerm f)
---          redg = liftJoin2 divideByLeadTerm normalG (leadTerm g)
-
--- | The S-polynomial, or overlap relation, of two given polynomials.
---sPoly :: (Ord (Mon n o), Fractional (Coef r), V.Arity n)
---         => Poly r n o -> Poly r n o -> Maybe (Poly r n o)
---sPoly f g = (-) <$> redf <*> redg
---    where lcm = M.lcmMon <$> (leadMonom f) <*> (leadMonom g)
---          normalF = leftMult <$> lcm <*> (Just f)
---          normalG = leftMult <$> lcm <*> (Just g)
---          redf = divideByLeadTerm <$> normalF <*> (leadTerm f) >>= id
---          redg = divideByLeadTerm <$> normalG <*> (leadTerm g) >>= id
 
 -- | The S-polynomial, or overlap relation, of two given polynomials.
 sPoly :: (Ord (Mon n o), Fractional (Coef r), V.Arity n)

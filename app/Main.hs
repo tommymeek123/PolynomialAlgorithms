@@ -8,11 +8,13 @@ import qualified Data.Map as Map
 import Data.Char.SScript (formatSS)
 import qualified RingParams as RP
 import qualified Polynomial as P
-import Algorithms ((//), (/%), gb)
+import Algorithms ((//), (/%), gb, isBasisOf, isGB, isReduced)
 import PolyParsers (Readable(..))
 
-type R = P.Polynomial RP.Q 2 RP.Glex
+type R = P.Polynomial RP.Q 2 RP.GLex
 type S = P.Polynomial RP.Q 4 RP.GRevLex
+type T = P.Polynomial RP.Q 5 RP.Lex
+type U = P.Polynomial RP.Q 3 RP.Lex
 
 main :: IO ()
 main = do
@@ -35,21 +37,49 @@ main = do
         g2 = P.fromMap $ Map.fromList [([1,4,0,0],"1"), ([0,0,5,0],"-1")] :: S
         g3 = P.fromMap $ Map.fromList [([5,0,1,0],"1"), ([0,5,0,1],"-1")] :: S
         g = P.fromMap $ Map.fromList [([0,0,26,0],"1"), ([0,25,0,1],"-1")] :: S
+        h1 = P.fromMap $ Map.fromList [([0,0,1,0,0],"1"), ([1,0,0,0,0],"-1"), ([0,1,0,0,0],"-1")] :: T
+        h2 = P.fromMap $ Map.fromList [([0,0,0,1,0],"1"), ([2,0,0,0,0],"-1"), ([1,1,0,0,0],"-2")] :: T
+        h3 = P.fromMap $ Map.fromList [([0,0,0,0,1],"1"), ([3,0,0,0,0],"-1"), ([2,1,0,0,0],"-3")] :: T
+        i1 = P.fromMap $ Map.fromList [([5,0,0],"1"), ([0,4,0],"1"), ([0,0,3],"1"), ([0,0,0],"-1")] :: U
+        i2 = P.fromMap $ Map.fromList [([3,0,0],"1"), ([0,3,0],"1"), ([0,0,2],"1"), ([0,0,0],"-1")] :: U
         fs = [f1,f2,f3,f4,f5]
         gbf = gb [f1,f2]
         gbg = gb [g1,g2,g3]
-    putStrLn $ "f1 = " ++ (formatSS . show) f1
-    putStrLn $ "f2 = " ++ (formatSS . show) f2
-    putStrLn $ "f3 = " ++ (formatSS . show) f3
-    putStrLn $ "f4 = " ++ (formatSS . show) f4
-    putStrLn $ "f5 = " ++ (formatSS . show) f5
-    putStrLn $ "g1 = " ++ (formatSS . show) g1
-    putStrLn $ "g2 = " ++ (formatSS . show) g2
-    putStrLn $ "g3 = " ++ (formatSS . show) g3
-    putStrLn $ "GB <f1,f2> = " ++ (formatSS . show) (gb [f1,f2])
-    putStrLn $ "GB <g1,g2,g3> = " ++ (formatSS . show) (gb [g1,g2,g3])
-    print $ (and . map (`elem` gbf)) fs
-    print $ (-1 * g) `elem` gbg
+        gbh = gb [h1,h2,h3]
+        gbi = gb [i1,i2]
+--    putStrLn $ "f1 = " ++ (formatSS . show) f1
+--    putStrLn $ "f2 = " ++ (formatSS . show) f2
+--    putStrLn $ "f3 = " ++ (formatSS . show) f3
+--    putStrLn $ "f4 = " ++ (formatSS . show) f4
+--    putStrLn $ "f5 = " ++ (formatSS . show) f5
+--    putStrLn $ "g1 = " ++ (formatSS . show) g1
+--    putStrLn $ "g2 = " ++ (formatSS . show) g2
+--    putStrLn $ "g3 = " ++ (formatSS . show) g3
+--    putStrLn $ "h1 = " ++ (formatSS . show) h1
+--    putStrLn $ "h2 = " ++ (formatSS . show) h2
+--    putStrLn $ "h3 = " ++ (formatSS . show) h3
+--    putStrLn $ "redh1 = " ++ (formatSS . show) (P.normalize h1)
+--    putStrLn $ "GB <h1,h2, h3> = " ++ (formatSS . show) gbh
+--    putStrLn $ "GB <f1,f2> = " ++ (formatSS . show) gbf
+--    putStrLn $ "GB <g1,g2,g3> = " ++ (formatSS . show) gbg
+    print $ gbf `isBasisOf` [f1,f2]
+    print $ isGB gbf
+    print $ isReduced gbf
+    print $ gbg `isBasisOf` [g1,g2,g3]
+    print $ isGB gbg
+    print $ isReduced gbg
+    print $ gbh `isBasisOf` [h1,h2,h3]
+    print $ isGB gbh
+    print $ isReduced gbh
+    print $ gbi `isBasisOf` [i1,i2]
+    print $ isGB gbi
+    print $ isReduced gbi
+--    print $ (and . map (`elem` gbf)) fs
+--    print $ g `elem` gbg
+--    putStrLn $ "GB <h1,h2,h3> = " ++ (formatSS . show) gbh
+--    print $ length gbi
+--    print $ map P.numTerms gbi
+--    print $ map P.totalDegree gbi
 
 --main :: IO ()
 --main = do

@@ -36,7 +36,7 @@ deriving instance V.Arity n => Eq (Mon n o)
 instance V.Arity n => Ord (Mon n RP.Lex) where
     compare a b = compare (degVec a) (degVec b)
 
-instance V.Arity n => Ord (Mon n RP.Glex) where
+instance V.Arity n => Ord (Mon n RP.GLex) where
     compare a b = let aVb = compare (totalDegree a) (totalDegree b)
                   in  if aVb == EQ
                       then compare (degVec a) (degVec b)
