@@ -8,13 +8,13 @@ import qualified Data.Map as Map
 import Data.Char.SScript (formatSS)
 import qualified RingParams as RP
 import qualified Polynomial as P
-import Algorithms ((//), (/%), gb, isBasisOf, isGB, isReduced)
+import Algorithms ((//), (/%), gb, isBasisOf, isGB)
 import PolyParsers (Readable(..))
 
 type R = P.Polynomial RP.Q 2 RP.GLex
 type S = P.Polynomial RP.Q 4 RP.GRevLex
 type T = P.Polynomial RP.Q 5 RP.Lex
-type U = P.Polynomial RP.Q 3 RP.Lex
+type U = P.Polynomial RP.Q 3 RP.GLex
 
 main :: IO ()
 main = do
@@ -64,22 +64,18 @@ main = do
 --    putStrLn $ "GB <g1,g2,g3> = " ++ (formatSS . show) gbg
     print $ gbf `isBasisOf` [f1,f2]
     print $ isGB gbf
-    print $ isReduced gbf
     print $ gbg `isBasisOf` [g1,g2,g3]
     print $ isGB gbg
-    print $ isReduced gbg
     print $ gbh `isBasisOf` [h1,h2,h3]
     print $ isGB gbh
-    print $ isReduced gbh
     print $ gbi `isBasisOf` [i1,i2]
     print $ isGB gbi
-    print $ isReduced gbi
 --    print $ (and . map (`elem` gbf)) fs
 --    print $ g `elem` gbg
 --    putStrLn $ "GB <h1,h2,h3> = " ++ (formatSS . show) gbh
 --    print $ length gbi
---    print $ map P.numTerms gbi
---    print $ map P.totalDegree gbi
+    print $ map P.numTerms gbi
+    print $ map P.totalDegree gbi
 
 --main :: IO ()
 --main = do

@@ -7,7 +7,6 @@
 module Algorithms ( gb
                   , isBasisOf
                   , isGB
-                  , isReduced
                   , longDiv
                   , reduce
                   , (//)
@@ -114,10 +113,20 @@ isGB :: (Ord (Mon n o), Fractional (Coef r), V.Arity n) => [Poly r n o] -> Bool
 isGB gs = all (==0) [fromMaybe 0 (P.sPoly g1 g2) /% gs | g1 <- gs, g2 <- gs, g1 /= g2]
 
 -- | Given a Grobner basis gs, determines if gs is reduced.
-isReduced :: Num (Coef r) => [Poly r n o] -> Bool
-isReduced gs = normalized && independent
-    where normalized = all (==Just 1) (map P.leadCoef gs)
-          independent = True -- <<< TODO: fix this
+--isReduced :: Num (Coef r) => [Poly r n o] -> Bool
+--isReduced gs = normalized && independent
+--    where normalized = all (==Just 1) (map P.leadCoef gs)
+--          independent = True
+
+--          independent = not (or (map anyMonomInLTIdeal gs))
+--          anyMonomInLTIdeal = P.pfoldr (\m b -> thisMonomInLTIdeal m || b) False
+--          thisMonomInLTIdeal m = any thing m
+--          thing m = [fromMaybe False M.divides <$> Just m <*> P.leadMonom g | g <- gs]
+
+
+--          check1 0 = True
+--          check1 f = fromMaybe 1 (P.leadMonom f) `k` check1 (P.dropLeadTerm f)
+--          m `k` go = not (and (map (`M.divides` m) gs)) && go
 
 --applyWhen :: (b -> a -> Bool) -> (a -> b -> a) -> (a -> a -> a) -> (a -> a)
 --             -> [b] -> (a,a) -> (a,a)

@@ -16,6 +16,7 @@ module Polynomial ( Polynomial
                   , multiDegree
                   , normalize
                   , numTerms
+                  , pfoldr
                   , scale
                   , scaleMon
                   , sPoly
@@ -157,6 +158,10 @@ pmapM f p = if any (\(m,_) -> isNothing m) factorList
                . Map.fromList
                . map (\(m,c) -> (fromMaybe mempty m, c)) $ factorList
     where factorList = Map.foldrWithKey (\m c xs -> (f m, c) : xs) [] (monMap p)
+
+-- | Fold a function over the monomials from the right.
+pfoldr :: (Mon n o -> a -> a) -> a -> Poly r n o -> a
+pfoldr f x p = Map.foldrWithKey (\m _ x -> f m x) x (monMap p)
 
 -- | Multiplies a polynomial by a scalar value.
 scale :: Num (Coef r) => Coef r -> Poly r n o -> Poly r n o
