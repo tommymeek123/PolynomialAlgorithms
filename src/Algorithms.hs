@@ -20,7 +20,6 @@ import Data.Maybe (fromMaybe)
 import qualified Coefficient as C
 import qualified DenseMonom as M
 import qualified Polynomial as P
-import Debug.Trace (trace, traceShow)
 
 -- Type synonyms
 type Coef = C.Coefficient
@@ -127,10 +126,3 @@ isGB gs = all (==0) [fromMaybe 0 (P.sPoly g1 g2) /% gs | g1 <- gs, g2 <- gs, g1 
 --          check1 0 = True
 --          check1 f = fromMaybe 1 (P.leadMonom f) `k` check1 (P.dropLeadTerm f)
 --          m `k` go = not (and (map (`M.divides` m) gs)) && go
-
---applyWhen :: (b -> a -> Bool) -> (a -> b -> a) -> (a -> a -> a) -> (a -> a)
---             -> [b] -> (a,a) -> (a,a)
---applyWhen _ _ f1 f2 [] (x1,x2) = (f1 x1 x2, f2 x1)
---applyWhen pred f0 f1 f2 ys (x1,x2) = if (pred (head ys) x1)
---                                     then (f0 x1 (head ys), x2)
---                                     else applyWhen pred f0 f1 f2 (tail ys) (x1,x2)

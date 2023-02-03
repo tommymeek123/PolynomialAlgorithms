@@ -51,7 +51,7 @@ instance V.Arity n => Ord (Mon n RP.GRevLex) where
                       else aVb
 
 instance V.Arity n => Show (Mon n o) where
-    show m = monListToString (V.toList $ degVec m)
+    show = monListToString . multiDegree
 
 instance V.Arity n => Semigroup (Mon n o) where
     a <> b = MakeMon { degVec = V.zipWith (+) (degVec a) (degVec b) }
@@ -87,9 +87,8 @@ lcmMon :: V.Arity n => Mon n o -> Mon n o -> Mon n o
 lcmMon a b = MakeMon $ V.zipWith (max) (degVec a) (degVec b)
 
 -- | A list of the exponents of the variables in a monomial
-multiDegree :: V.Arity n => Maybe (Mon n o) -> Maybe [Int]
-multiDegree Nothing = Nothing
-multiDegree (Just m) = (Just . V.toList . degVec) m
+multiDegree :: V.Arity n => Mon n o -> [Int]
+multiDegree = V.toList . degVec
 
 -- | The sum of the exponents of the variables in a monomial
 totalDegree :: V.Arity n => Mon n o -> Int

@@ -22,7 +22,8 @@ library
                         , proxy
                         , split
                         , text
-    default-extensions:   DataKinds
+    default-extensions:   BangPatterns
+                        , DataKinds
                         , GADTs
                         , FlexibleContexts
                         , FlexibleInstances

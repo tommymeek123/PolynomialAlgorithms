@@ -26,7 +26,6 @@ module Polynomial ( Polynomial
                   ) where
 
 import Data.Maybe (fromMaybe, isNothing)
---import Control.Monad (liftM)
 import Data.Composition ((.:))
 import Data.Foldable (maximumBy)
 import GHC.TypeLits (Nat)
@@ -123,18 +122,9 @@ leftMultWithCoef :: (Ord (Mon n o), Num (Coef r), V.Arity n)
                     => Mon n o -> Coef r -> Poly r n o -> Poly r n o
 leftMultWithCoef m c = makePoly . Map.map (c *) . Map.mapKeys (m <>) . monMap
 
--- Lift a binary boolean function to consider Maybes. Depricated. Use aplicative instead.
-liftBool :: (a -> b -> Bool) -> Maybe a -> Maybe b -> Bool
-liftBool comp ma mb
-    | isNothing ma = False
-    | isNothing mb = False
-    | otherwise = a `comp` b
-        where Just a = ma
-              Just b = mb
-
 -- | A list of the exponents of the variables in the lead monomial.
 multiDegree :: V.Arity n => Poly r n o -> Maybe [Int]
-multiDegree = M.multiDegree . leadMonom
+multiDegree = fmap M.multiDegree . leadMonom
 
 -- | Normalizes a polynomial to have a lead coefficient of 1.
 normalize :: (Ord (Mon n o), Fractional (Coef r), V.Arity n) => Poly r n o -> Poly r n o
@@ -202,10 +192,3 @@ divideByLeadTerm :: (Ord (Mon n o), Fractional (Coef r), V.Arity n)
 f `divideByLeadTerm` g = scaleDown <$> (leadCoef g) <*> q
     where scaleDown c = scale (recip c)
           q = leadMonom g >>= (f `divideByMon`)
-
--- f `divideByLeadTerm` g := LT(f)/LT(g)
---divideByLeadTerm :: (Fractional (Coef r), V.Arity n)
---                       => Poly r n o -> Poly r n o -> Maybe (Poly r n o)
---f `divideByLeadTerm` g = liftM3 scaleFrac (leadCoef f) (leadCoef g) underlap
---    where underlap = liftJoin2 M.divideBy (leadMonom f) (leadMonom g)
---          scaleFrac n d m = (n / d) `scaleMon` m
