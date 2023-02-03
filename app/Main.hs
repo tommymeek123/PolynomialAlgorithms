@@ -7,6 +7,7 @@
 import qualified Data.Map as Map
 import Data.Char.SScript (formatSS)
 import qualified RingParams as RP
+import qualified SparseMonom as M
 import qualified Polynomial as P
 import Algorithms ((//), (/%), gb, isBasisOf, isGB)
 import PolyParsers (Readable(..))
