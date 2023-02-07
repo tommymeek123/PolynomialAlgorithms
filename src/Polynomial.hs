@@ -29,10 +29,11 @@ import Data.Maybe (fromMaybe, isNothing)
 import Data.Composition ((.:))
 import Data.Foldable (maximumBy)
 import GHC.TypeLits (Nat)
-import qualified Data.Vector.Fixed as V
+import Data.Vector.Fixed (Arity)
 import qualified Data.Map as Map
 import qualified Coefficient as C
 import qualified DenseMonom as M
+--import qualified SparseMonom as M
 import qualified RingParams as RP
 import PolyParsers (Readable(..), polyTupleListFromString, polyListToString)
 
@@ -45,7 +46,7 @@ type Poly = Polynomial
 newtype Polynomial :: RP.Ring -> Nat -> RP.MonOrder -> * where
     MakePoly :: { monMap :: Map.Map (Mon n o) (Coef r) } -> Polynomial r n o
 
-deriving instance V.Arity n => Eq (Poly r n o)
+deriving instance Arity n => Eq (Poly r n o)
 
 makePoly :: Num (Coef r) => Map.Map (Mon n o) (Coef r) -> Poly r n o
 makePoly = MakePoly . Map.filter (/= 0)
@@ -64,10 +65,10 @@ instance (Ord (Mon n o), Readable (Mon n o), Num (Coef r), Readable (Coef r))
                . map (\(ms,cs) -> (fromString ms, fromString cs))
                . polyTupleListFromString
 
-instance (Ord (Mon n o), Num (Coef r), V.Arity n) => Num (Poly r n o) where
+instance (Ord (Mon n o), Num (Coef r), Arity n) => Num (Poly r n o) where
     f + g = makePoly $ Map.unionWith (+) (monMap f) (monMap g)
     f * g = Map.foldrWithKey distributeOver 0 (monMap g)
-        where distributeOver m c = (+) (leftMultWithCoef m c f)
+        where distributeOver m c = (+) (leftMultWithCoef m c f) -- TODO: if statement to distribute the other direction.
     abs = id
     signum _ = 1
     fromInteger n = makePoly $ Map.singleton mempty (fromInteger n)
@@ -82,7 +83,7 @@ dropLeadTerm :: Poly r n o -> Poly r n o
 dropLeadTerm = MakePoly . Map.deleteMax . monMap
 
 -- | Creates a polynomial from a map to Strings representing the coefficients.
-fromMap :: (V.Arity n, Num (Coef r), Readable (Coef r), Ord (Mon n o))
+fromMap :: (Arity n, Num (Coef r), Readable (Coef r), Ord (Mon n o))
            => Map.Map [Int] String -> Poly r n o
 fromMap = makePoly . Map.map fromString . Map.mapKeys M.fromList
 
@@ -106,28 +107,28 @@ leadMonomAsPoly f = case leadMonom f of
 
 -- | The lead term of a polynomial.
 leadTerm :: Num (Coef r) => Poly r n o -> Maybe (Poly r n o)
-leadTerm f = (makePoly .: Map.singleton) <$> (leadMonom f) <*> (leadCoef f)
+leadTerm f = (makePoly .: Map.singleton) <$> (leadMonom f) <*> (leadCoef f) -- TODO: Memoize this
 
 -- | Determines if the lead term of the first argument divides the second.
-leadTermDivs :: V.Arity n => Poly r n o -> Poly r n o -> Bool
+leadTermDivs :: Arity n => Poly r n o -> Poly r n o -> Bool
 g `leadTermDivs` f = fromMaybe False $ M.divides <$> leadMonom g <*> leadMonom f
 
 -- Left multiply a polynomial by a monomial.
-leftMult :: (Ord (Mon n o), Num (Coef r), V.Arity n)
+leftMult :: (Ord (Mon n o), Num (Coef r), Arity n)
             => Mon n o -> Poly r n o -> Poly r n o
 leftMult m = makePoly . Map.mapKeys (m <>) . monMap
 
 -- Left multiply a polynomial by a monomial and a coeficient
-leftMultWithCoef :: (Ord (Mon n o), Num (Coef r), V.Arity n)
+leftMultWithCoef :: (Ord (Mon n o), Num (Coef r), Arity n)
                     => Mon n o -> Coef r -> Poly r n o -> Poly r n o
 leftMultWithCoef m c = makePoly . Map.map (c *) . Map.mapKeys (m <>) . monMap
 
 -- | A list of the exponents of the variables in the lead monomial.
-multiDegree :: V.Arity n => Poly r n o -> Maybe [Int]
+multiDegree :: Arity n => Poly r n o -> Maybe [Int]
 multiDegree = fmap M.multiDegree . leadMonom
 
 -- | Normalizes a polynomial to have a lead coefficient of 1.
-normalize :: (Ord (Mon n o), Fractional (Coef r), V.Arity n) => Poly r n o -> Poly r n o
+normalize :: (Ord (Mon n o), Fractional (Coef r), Arity n) => Poly r n o -> Poly r n o
 normalize f = fromMaybe 0 $ scale <$> (recip <$> leadCoef f) <*> Just f
 
 -- | The number of nonzero terms in a polynomial.
@@ -139,7 +140,7 @@ pmap :: (Ord (Mon n o), Num (Coef r)) => (Mon n o -> Mon n o) -> Poly r n o -> P
 pmap f p = makePoly $ Map.mapKeys f (monMap p)
 
 -- | Works like pmap but returns Nothing if any of the terms return Nothing.
-pmapM :: (Ord (Mon n o), Num (Coef r), V.Arity n)
+pmapM :: (Ord (Mon n o), Num (Coef r), Arity n)
          => (Mon n o -> Maybe (Mon n o)) -> Poly r n o -> Maybe (Poly r n o)
 pmapM f p = if any (\(m,_) -> isNothing m) factorList
             then Nothing
@@ -162,7 +163,7 @@ scaleMon :: Num (Coef r) => Coef r -> Mon n o -> Poly r n o
 scaleMon c m = makePoly $ Map.singleton m c
 
 -- | The S-polynomial, or overlap relation, of two given polynomials.
-sPoly :: (Ord (Mon n o), Fractional (Coef r), V.Arity n)
+sPoly :: (Ord (Mon n o), Fractional (Coef r), Arity n)
          => Poly r n o -> Poly r n o -> Maybe (Poly r n o)
 sPoly f g = (-) <$> redf <*> redg
     where lcm = M.lcmMon <$> leadMonom f <*> leadMonom g
@@ -172,7 +173,7 @@ sPoly f g = (-) <$> redf <*> redg
           redg = (*) <$> gNormalizer <*> Just g
 
 -- | The sum of the exponents of the variables in the lead monomial.
-totalDegree :: V.Arity n => Poly r n o -> Maybe Int
+totalDegree :: Arity n => Poly r n o -> Maybe Int
 totalDegree f | isZero f = Nothing
               | otherwise = (Just
                            . M.totalDegree
@@ -182,12 +183,12 @@ totalDegree f | isZero f = Nothing
     where comp a b = compare (M.totalDegree a) (M.totalDegree b)
 
 -- | Divides a polynomial by a monomial
-divideByMon :: (Ord (Mon n o), Num (Coef r), V.Arity n)
+divideByMon :: (Ord (Mon n o), Num (Coef r), Arity n)
                   => Poly r n o -> Mon n o -> Maybe (Poly r n o)
 f `divideByMon` m = pmapM (`M.divideBy` m) f
 
 -- | Divides a polynomial by the lead term of another polynomial
-divideByLeadTerm :: (Ord (Mon n o), Fractional (Coef r), V.Arity n)
+divideByLeadTerm :: (Ord (Mon n o), Fractional (Coef r), Arity n)
                        => Poly r n o -> Poly r n o -> Maybe (Poly r n o)
 f `divideByLeadTerm` g = scaleDown <$> (leadCoef g) <*> q
     where scaleDown c = scale (recip c)

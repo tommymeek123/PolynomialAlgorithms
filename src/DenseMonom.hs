@@ -54,15 +54,14 @@ instance V.Arity n => Show (Mon n o) where
     show = monListToString . multiDegree
 
 instance V.Arity n => Semigroup (Mon n o) where
-    a <> b = MakeMon { degVec = V.zipWith (+) (degVec a) (degVec b) }
+    a <> b = MakeMon $ V.zipWith (+) (degVec a) (degVec b)
 
-instance (KnownNat n, V.Arity n) => Monoid (Mon n o) where
+instance V.Arity n => Monoid (Mon n o) where
     mempty = MakeMon $ V.fromList' $ take nn (repeat 0)
         where nn = (fromInteger . reflect) (Proxy :: Proxy n)
 
-instance (KnownNat n, V.Arity n) => Readable (Mon n o) where
-    fromString :: forall n o. (KnownNat n, V.Arity n) => String -> Mon n o
-    fromString s = MakeMon { degVec = V.fromList' $ monListFromString nn s }
+instance V.Arity n => Readable (Mon n o) where
+    fromString = MakeMon . V.fromList' . monListFromString nn
         where nn = (fromInteger . reflect) (Proxy :: Proxy n)
 
 -- | Determines if the first argument divides the second argument

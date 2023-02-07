@@ -23,12 +23,10 @@ library
                         , proxy
                         , split
                         , text
-    default-extensions:   BangPatterns
-                        , DataKinds
+    default-extensions:   DataKinds
                         , GADTs
                         , FlexibleContexts
                         , FlexibleInstances
-                        , InstanceSigs
                         , KindSignatures
                         , ScopedTypeVariables
                         , StandaloneDeriving
