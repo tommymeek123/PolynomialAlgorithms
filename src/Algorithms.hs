@@ -19,6 +19,7 @@ import Data.List.Index (modifyAt)
 import Data.Maybe (fromMaybe)
 import qualified Coefficient as C
 import qualified DenseMonom as M
+--import qualified SparseMonom as M
 import qualified Polynomial as P
 
 -- Type synonyms

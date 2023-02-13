@@ -46,10 +46,10 @@ type Poly = Polynomial
 newtype Polynomial :: RP.Ring -> Nat -> RP.MonOrder -> * where
     MakePoly :: { monMap :: Map.Map (Mon n o) (Coef r) } -> Polynomial r n o
 
-deriving instance Arity n => Eq (Poly r n o)
-
 makePoly :: Num (Coef r) => Map.Map (Mon n o) (Coef r) -> Poly r n o
 makePoly = MakePoly . Map.filter (/= 0)
+
+deriving instance Arity n => Eq (Poly r n o)
 
 instance (Show (Mon n o), Show (Coef r)) => Show (Poly r n o) where
     show = polyListToString
