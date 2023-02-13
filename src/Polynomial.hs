@@ -4,7 +4,9 @@
 --
 -- A module for commutative polynomials.
 -----------------------------------------------------------------------------------------
-module Polynomial ( Polynomial
+module Polynomial ( C.Coefficient
+                  , M.Monomial
+                  , Polynomial
                   , dropLeadTerm
                   , fromMap
                   , isZero

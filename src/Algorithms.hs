@@ -17,14 +17,11 @@ import Data.Vector.Fixed (Arity)
 import Data.List (delete)
 import Data.List.Index (modifyAt)
 import Data.Maybe (fromMaybe)
-import qualified Coefficient as C
-import qualified DenseMonom as M
---import qualified SparseMonom as M
 import qualified Polynomial as P
 
 -- Type synonyms
-type Coef = C.Coefficient
-type Mon = M.Monomial
+type Coef = P.Coefficient
+type Mon = P.Monomial
 type Poly = P.Polynomial
 
 -- | Returns a list of quotients and a remainder that result from division.
