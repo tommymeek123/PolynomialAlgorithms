@@ -22,6 +22,7 @@ import Data.Vector.Fixed (Arity)
 import qualified Data.IntMap as IMap
 import qualified RingParams as RP
 import PolyParsers (Readable(..), monMapFromString, monListToString)
+import Debug.Trace (trace, traceShow)
 
 -- Type synonym
 type Mon = Monomial
@@ -96,8 +97,9 @@ fromList = makeMon . IMap.fromList . zip [1..]
 
 -- | A list of the exponents of the variables in a monomial
 multiDegree :: Mon n o -> [Int]
-multiDegree = IMap.foldrWithKey f [] . degMap
-    where f k exp lst = if length lst == k+1 then exp:lst else 0:lst
+multiDegree = IMap.foldlWithKey f [] . degMap
+--    where f lst k exp = if length (trace ("k="++show k ++ "lst=" ++ show lst) lst) == k-1 then exp:lst else 0:lst
+    where f lst k exp = if length lst == k-1 then lst ++ [exp] else lst ++ [0]
 
 -- | The sum of the exponents of the variables in a monomial
 totalDegree :: Mon n o -> Int

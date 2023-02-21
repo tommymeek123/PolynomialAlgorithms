@@ -16,11 +16,13 @@ import PolyParsers (Readable(..), ratFromString, ratToString)
 -- Type synonyms
 type Q = Coefficient RP.Q
 type Fp = Coefficient RP.Fp
+--type Fq = Coefficient RP.Fq
 
 -- | A coefficient in a polynomial ring
 data Coefficient :: RP.Ring -> * where
     Q :: Rational -> Coefficient r
     Fp :: Coefficient r
+--    Fq :: Integer -> Coefficient r
     deriving Eq
 
 instance Show Q where
@@ -61,3 +63,20 @@ instance Fractional Fp where
 
 instance Readable Fp where
     fromString s = Fp
+
+--deriving instance Show Fq
+
+--instance Num Fq where
+--    (Fq r) + (Fq s) = Fq ((r + s) `mod` 2)
+--    (Fq r) - (Fq s) = Fq ((r - s) `mod` 2)
+--    (Fq r) * (Fq s) = Fq ((r * s) `mod` 2)
+--    abs (Fq r)     = Fq (abs r)
+--    signum (Fq r)  = Fq (signum r)
+--    fromInteger n = Fq $ n `mod` 2
+
+--instance Fractional Fq where
+--    recip 1        = Fq 1
+--    fromRational a = fromInteger (numerator a) * recip (fromInteger (denominator a))
+
+--instance Readable Fq where
+--    fromString = Fq . read

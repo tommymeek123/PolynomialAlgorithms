@@ -34,8 +34,8 @@ import GHC.TypeLits (Nat)
 import Data.Vector.Fixed (Arity)
 import qualified Data.Map as Map
 import qualified Coefficient as C
-import qualified DenseMonom as M
---import qualified SparseMonom as M
+--import qualified DenseMonom as M
+import qualified SparseMonom as M
 import qualified RingParams as RP
 import PolyParsers (Readable(..), polyTupleListFromString, polyListToString)
 

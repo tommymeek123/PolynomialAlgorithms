@@ -4,6 +4,7 @@
 --
 -- Driver for polynomial operations and algorithms.
 -----------------------------------------------------------------------------------------
+import Data.Maybe (fromMaybe)
 import qualified Data.Map as Map
 import Data.Char.SScript (formatSS)
 import qualified RingParams as RP
@@ -76,6 +77,7 @@ main = do
 --    print $ length gbi
     print $ map P.numTerms gbi
     print $ map P.totalDegree gbi
+    putStrLn $ "GB <i1,i2> = " ++ (formatSS . show) gbi
 
 --main :: IO ()
 --main = do

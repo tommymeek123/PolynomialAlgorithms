@@ -72,8 +72,7 @@ monTupleListFromString n s = filter (\(k,v) -> k <= n)
                 then (read . tail . dropWhile (/= '^')) s
                 else 1
 
-{- | Convert the exponent list of a monomial to a string. Inverse of
-monListFromString. -}
+-- | Convert the exponent list of a monomial to a string. Inverse of monListFromString.
 monListToString :: [Int] -> String
 monListToString [] = "1"
 monListToString xs = concat . snd $ mapAccumL f 1 xs
