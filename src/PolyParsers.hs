@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 -----------------------------------------------------------------------------------------
 -- |
 -- Authors : Tommy Meek and Frank Moore
@@ -17,6 +18,7 @@ import Data.List (delete, intercalate, mapAccumL, sort)
 import Data.List.Split (splitOn)
 import Data.List.Index (setAt)
 import Data.Char (digitToInt, isSpace)
+import Data.Text (pack, unpack, replace)
 import Data.Tuple (swap)
 import Data.Ratio ((%), numerator, denominator)
 import Data.Composition ((.:))
@@ -75,10 +77,14 @@ monTupleListFromString n s = filter (\(k,v) -> k <= n)
 -- | Convert the exponent list of a monomial to a string. Inverse of monListFromString.
 monListToString :: [Int] -> String
 monListToString [] = "1"
-monListToString xs = concat . snd $ mapAccumL f 1 xs
-    where f n x | x == 0 = (n+1, "")
+monListToString xs = if length xs <= 3 then xyzFormat . getString $ xs else getString xs
+    where getString = concat . snd . mapAccumL f 1
+          f n x | x == 0 = (n+1, "")
                 | x == 1 = (n+1, "x_" ++ show n)
                 | otherwise = (n+1, "x_" ++ show n ++ "^" ++ show x)
+
+xyzFormat :: String -> String
+xyzFormat = unpack . replace "x_1" "x" . replace "x_2" "y" . replace "x_3" "z" . pack
 
 {- | Convert a String representing a polynomial to an association list where
 strings representing monomials are the keys and strings representing
@@ -96,8 +102,8 @@ polyTupleListFromString s = map (\(k,v) -> if v == "-" then (k,"-1") else (k,v))
 polyTupleListFromString. -}
 polyListToString :: [String] -> String
 polyListToString [] = "0"
-polyListToString f = let leadCoef = takeWhile (/= 'x')
-                         isMonic s = leadCoef s `elem` ["-1","1"]
+polyListToString f = let coef = takeWhile (`notElem` ("xyz" :: String))
+                         isMonic s = coef s `elem` ["-1","1"]
                          removeOnes s = if length s > 2 && isMonic s
                                         then delete '1' s
                                         else s

@@ -96,9 +96,8 @@ fromList :: [Int] -> Mon n o
 fromList = makeMon . IMap.fromList . zip [1..]
 
 -- | A list of the exponents of the variables in a monomial
-multiDegree :: Mon n o -> [Int]
+multiDegree :: Mon n o -> [Int] --TODO: right pad with zeros
 multiDegree = IMap.foldlWithKey f [] . degMap
---    where f lst k exp = if length (trace ("k="++show k ++ "lst=" ++ show lst) lst) == k-1 then exp:lst else 0:lst
     where f lst k exp = if length lst == k-1 then lst ++ [exp] else lst ++ [0]
 
 -- | The sum of the exponents of the variables in a monomial
