@@ -32,32 +32,40 @@ newtype Monomial :: Nat -> RP.MonOrder -> * where
     MakeMon :: { degMap :: IMap.IntMap Int } -> Monomial n o deriving Eq
 
 makeMon :: IMap.IntMap Int -> Mon n o
-makeMon = MakeMon . IMap.filterWithKey (\k _ -> k /= 0)
+makeMon = MakeMon . IMap.filterWithKey (\_ exp -> exp /= 0)
 
 lexCompare :: Mon n o -> Mon n o -> Ordering
-lexCompare a b = compare (degList a) (degList b)
+a `lexCompare` b = (degList a) `compList` (degList b)
     where degList = IMap.assocs . degMap
 
 revLexCompare :: Mon n o -> Mon n o -> Ordering
-revLexCompare a b = compare (revList b) (revList a)
+a `revLexCompare` b = (revList b) `compList` (revList a)
     where revList = reverse . IMap.assocs . degMap
+
+compList :: [(Int,Int)] -> [(Int,Int)] -> Ordering
+compList [] [] = EQ
+compList _ [] = GT
+compList [] _ = LT
+compList ((n1,e1):vars1) ((n2,e2):vars2) | n1 /= n2 = n2 `compare` n1
+                                         | e1 /= e2 = e1 `compare` e2
+                                         | otherwise = vars1 `compList` vars2
 
 instance Ord (Mon n RP.Lex) where
     compare = lexCompare
 
 instance Ord (Mon n RP.GLex) where
-    compare a b = let aVb = compare (totalDegree a) (totalDegree b)
+    a `compare` b = let aVb = (totalDegree a) `compare` (totalDegree b)
                   in  if aVb == EQ
-                      then lexCompare a b
+                      then a `lexCompare` b
                       else aVb
 
 instance Ord (Mon n RP.GRevLex) where
-    compare a b = let aVb = compare (totalDegree a) (totalDegree b)
+    a `compare` b = let aVb = (totalDegree a) `compare` (totalDegree b)
                   in  if aVb == EQ
-                      then revLexCompare a b
+                      then a `revLexCompare` b
                       else aVb
 
-instance Show (Mon n o) where
+instance Arity n => Show (Mon n o) where
     show = monListToString . multiDegree
 
 instance Semigroup (Mon n o) where
@@ -74,6 +82,7 @@ instance Arity n => Readable (Mon n o) where
 divides :: Mon n o -> Mon n o -> Bool
 a `divides` b = all (`varDivides` (degList b)) (degList a)
     where degList = IMap.assocs . degMap
+          varDivides _ [] = False
           varDivides (n1,e1) ((n2,e2):vars) = if n1 > n2
                                               then varDivides (n1,e1) vars
                                               else n1 == n2 && e1 <= e2
@@ -96,9 +105,11 @@ fromList :: [Int] -> Mon n o
 fromList = makeMon . IMap.fromList . zip [1..]
 
 -- | A list of the exponents of the variables in a monomial
-multiDegree :: Mon n o -> [Int] --TODO: right pad with zeros
-multiDegree = IMap.foldlWithKey f [] . degMap
-    where f lst k exp = if length lst == k-1 then lst ++ [exp] else lst ++ [0]
+multiDegree :: forall n o. Arity n => Mon n o -> [Int]
+multiDegree = rpad nn . IMap.foldlWithKey acc [] . degMap
+    where acc lst k exp = rpad (k-1) lst ++ [exp]
+          nn = (fromInteger . reflect) (Proxy :: Proxy n)
+          rpad m xs = take m $ xs ++ repeat 0
 
 -- | The sum of the exponents of the variables in a monomial
 totalDegree :: Mon n o -> Int

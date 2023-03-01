@@ -29,6 +29,7 @@ main = do
 --        g1 = (fromString g1string) :: S
 --        g2 = (fromString g2string) :: S
 --        g3 = (fromString g3string) :: S
+
         f1 = P.fromMap $ Map.fromList [([3,0],"1"), ([1,1],"-2")] :: R
         f2 = P.fromMap $ Map.fromList [([2,1],"1"), ([0,2],"-2"), ([1,0],"1")] :: R
         f3 = P.fromMap $ Map.fromList [([2,0],"-1")] :: R
@@ -48,6 +49,7 @@ main = do
         gbg = gb [g1,g2,g3]
         gbh = gb [h1,h2,h3]
         gbi = gb [i1,i2]
+
 --    putStrLn $ "f1 = " ++ (formatSS . show) f1
 --    putStrLn $ "f2 = " ++ (formatSS . show) f2
 --    putStrLn $ "f3 = " ++ (formatSS . show) f3
@@ -63,6 +65,7 @@ main = do
 --    putStrLn $ "GB <h1,h2, h3> = " ++ (formatSS . show) gbh
 --    putStrLn $ "GB <f1,f2> = " ++ (formatSS . show) gbf
 --    putStrLn $ "GB <g1,g2,g3> = " ++ (formatSS . show) gbg
+
     print $ gbf `isBasisOf` [f1,f2]
     print $ isGB gbf
     print $ gbg `isBasisOf` [g1,g2,g3]
@@ -71,13 +74,15 @@ main = do
     print $ isGB gbh
     print $ gbi `isBasisOf` [i1,i2]
     print $ isGB gbi
+
 --    print $ (and . map (`elem` gbf)) fs
 --    print $ g `elem` gbg
 --    putStrLn $ "GB <h1,h2,h3> = " ++ (formatSS . show) gbh
 --    print $ length gbi
+
     print $ map P.numTerms gbi
     print $ map P.totalDegree gbi
-    putStrLn $ "GB <i1,i2> = " ++ (formatSS . show) gbi
+--    putStrLn $ "GB <i1,i2> = " ++ (formatSS . show) gbi
 
 --main :: IO ()
 --main = do

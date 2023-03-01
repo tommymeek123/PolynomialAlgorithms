@@ -55,7 +55,7 @@ deriving instance Arity n => Eq (Poly r n o)
 
 instance (Show (Mon n o), Show (Coef r)) => Show (Poly r n o) where
     show = polyListToString
-         . map (\(m,c) -> show c ++ show m)
+         . map (\(m,c) -> (show m, show c))
          . reverse
          . Map.assocs
          . monMap

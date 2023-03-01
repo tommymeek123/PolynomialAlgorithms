@@ -52,7 +52,7 @@ the exponents. Example: "x_1^3x_3^7x_6" becomes [3,0,7,0,0,1]. -}
 monListFromString :: Int -> String -> [Int]
 monListFromString n = foldl insertTuple zeros . monTupleListFromString n
     where insertTuple degs (i,deg) = setAt (i-1) deg degs
-          zeros = take n (repeat 0)
+          zeros = replicate n 0
 
 {- | Convert a string representing a monomial to an IntMap from the position
 of the variable to the exponent of that variable. Example: "x_1^3x_3^7x_6"
@@ -76,8 +76,8 @@ monTupleListFromString n s = filter (\(k,v) -> k <= n)
 
 -- | Convert the exponent list of a monomial to a string. Inverse of monListFromString.
 monListToString :: [Int] -> String
-monListToString [] = "1"
-monListToString xs = if length xs <= 3 then xyzFormat . getString $ xs else getString xs
+monListToString xs = if all (==0) xs then "1" else
+                     if length xs <= 3 then (xyzFormat . getString) xs else getString xs
     where getString = concat . snd . mapAccumL f 1
           f n x | x == 0 = (n+1, "")
                 | x == 1 = (n+1, "x_" ++ show n)
@@ -100,15 +100,14 @@ polyTupleListFromString s = map (\(k,v) -> if v == "-" then (k,"-1") else (k,v))
 
 {- | Convert an association list of a polyomial to a string. Inverse of
 polyTupleListFromString. -}
-polyListToString :: [String] -> String
+polyListToString :: [(String,String)] -> String
 polyListToString [] = "0"
-polyListToString f = let coef = takeWhile (`notElem` ("xyz" :: String))
-                         isMonic s = coef s `elem` ["-1","1"]
-                         removeOnes s = if length s > 2 && isMonic s
-                                        then delete '1' s
-                                        else s
+polyListToString f = let termToString ("1",c) = c
+                         termToString (m,"1") = m
+                         termToString (m,"-1") = '-':m
+                         termToString (m,c) = c++m
     in (intercalate " - " . splitOn " + -" -- Display subtraction
-      . intercalate " + " . map removeOnes) f
+      . intercalate " + " . map termToString) f
 
 --rpad :: Int -> [Int] -> [Int]
 --rpad m xs = take m $ xs ++ repeat 0
