@@ -14,6 +14,7 @@ module Polynomial ( C.Coefficient
                   , leadMonom
                   , leadMonomAsPoly
                   , leadTerm
+                  , leadTermCoprime
                   , leadTermDivs
                   , multiDegree
                   , normalize
@@ -67,10 +68,21 @@ instance (Ord (Mon n o), Readable (Mon n o), Num (Coef r), Readable (Coef r))
                . map (\(ms,cs) -> (fromString ms, fromString cs))
                . polyTupleListFromString
 
+--instance (Ord (Mon n o), Num (Coef r), Arity n) => Num (Poly r n o) where
+--    f + g = makePoly $ Map.unionWith (+) (monMap f) (monMap g)
+--    f * g = if numTerms f > numTerms g then f `leftPolyMult` g else g `leftPolyMult` f
+--        where leftPolyMult f g = Map.foldrWithKey (distributeOver f) 0 (monMap g)
+--              distributeOver f m c = (+) (leftMultWithCoef m c f)
+--    abs = id
+--    signum _ = 1
+--    fromInteger n = makePoly $ Map.singleton mempty (fromInteger n)
+--    negate = makePoly . Map.map negate . monMap
+
 instance (Ord (Mon n o), Num (Coef r), Arity n) => Num (Poly r n o) where
     f + g = makePoly $ Map.unionWith (+) (monMap f) (monMap g)
-    f * g = Map.foldrWithKey distributeOver 0 (monMap g)
-        where distributeOver m c = (+) (leftMultWithCoef m c f) -- TODO: if statement to distribute the other direction.
+    f * g = if numTerms f < numTerms g then f `leftPolyMult` g else g `leftPolyMult` f
+        where f `leftPolyMult` g = Map.foldlWithKey (distributeOver g) 0 (monMap f)
+              distributeOver g p m c = p + (leftMultWithCoef m c g)
     abs = id
     signum _ = 1
     fromInteger n = makePoly $ Map.singleton mempty (fromInteger n)
@@ -110,6 +122,10 @@ leadMonomAsPoly f = case leadMonom f of
 -- | The lead term of a polynomial.
 leadTerm :: Num (Coef r) => Poly r n o -> Maybe (Poly r n o)
 leadTerm f = (makePoly .: Map.singleton) <$> (leadMonom f) <*> (leadCoef f) -- TODO: Memoize this
+
+-- | Determine if the lead terms of two polynomials are relatively prime.
+leadTermCoprime :: Arity n => Poly r n o -> Poly r n o -> Bool
+f `leadTermCoprime` g = fromMaybe False $ M.coprime <$> leadMonom f <*> leadMonom g
 
 -- | Determines if the lead term of the first argument divides the second.
 leadTermDivs :: Arity n => Poly r n o -> Poly r n o -> Bool

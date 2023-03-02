@@ -85,18 +85,17 @@ basis fs = if fs == gs then fs else basis gs
     where startingPairs = [(m,n) | n <- [0..length fs - 1], m <- [0..n-1]]
           gs = cycle1 (startingPairs, fs)
           cycle1 ([], gs) = gs
-          cycle1 (pairs, gs) = cycle1 (tail pairs ++ newPairs, gs ++ newPoly)
+          cycle1 (pairs, gs) = cycle1 (tail pairs ++ newPairs r gs, gs ++ newPoly)
               where g1 = gs !! fst (head pairs)
                     g2 = gs !! snd (head pairs)
                     r = fromMaybe 0 (P.sPoly g1 g2) /% gs
                     newPoly = if r /= 0 then [P.normalize r] else []
-                    newPairs = if r /= 0 -- TODO: make this more efficient
-                               then [(m,length gs - 1) | m <- [0..length gs - 2]]
-                               else []
 
---getNewPairs :: Poly r n o -> [Poly r n o] -> [(Int,Int)]
---getNewPairs 0 gs = []
---getnewPairs r gs =
+newPairs :: (Ord (Mon n o), Num (Coef r), Arity n)
+            => Poly r n o -> [Poly r n o] -> [(Int,Int)]
+newPairs 0 gs = []
+newPairs r gs = [(m,length gs - 1) | m <- [0..length gs - 2]]
+--    where coprime g = r `P.leadTermCoprime` (gs !! g)
 
 -- | Implementation of Buchburger's algorithm to find a reduced Groebner basis.
 gb :: (Ord (Mon n o), Fractional (Coef r), Arity n) => [Poly r n o] -> [Poly r n o]

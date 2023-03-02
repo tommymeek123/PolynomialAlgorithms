@@ -7,6 +7,7 @@
 -- exponent of x_i.
 -----------------------------------------------------------------------------------------
 module DenseMonom ( Monomial
+                  , coprime
                   , divides
                   , divideBy
                   , fromList
@@ -63,6 +64,10 @@ instance V.Arity n => Monoid (Mon n o) where
 instance V.Arity n => Readable (Mon n o) where
     fromString = MakeMon . V.fromList' . monListFromString nn
         where nn = (fromInteger . reflect) (Proxy :: Proxy n)
+
+-- | Determine if two monomials are relatively prime.
+coprime :: V.Arity n => Mon n o -> Mon n o -> Bool
+a `coprime` b = gcdMon a b == mempty
 
 -- | Determines if the first argument divides the second argument
 divides :: V.Arity n => Mon n o -> Mon n o -> Bool
