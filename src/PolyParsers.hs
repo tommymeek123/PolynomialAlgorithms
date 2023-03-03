@@ -108,6 +108,3 @@ polyListToString f = let termToString ("1",c) = c
                          termToString (m,c) = c++m
     in (intercalate " - " . splitOn " + -" -- Display subtraction
       . intercalate " + " . map termToString) f
-
---rpad :: Int -> [Int] -> [Int]
---rpad m xs = take m $ xs ++ repeat 0

@@ -9,7 +9,11 @@ module RingParams ( Ring(..)
                   ) where
 
 -- | The base ring used as coefficients for polynomials
-data Ring = Q | Fp deriving (Eq,Read,Show)
+data Ring = Q | Zero | FTwo | FThree | F Int deriving (Eq,Read,Show)
 
 -- | The Monomial ordering used in our polynomial ring
 data MonOrder = Lex | GLex | GRevLex deriving (Eq,Read,Show)
+
+
+--data family PrimeField (n :: Natural) :: Ring where
+--    PrimeField n =

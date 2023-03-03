@@ -40,14 +40,14 @@ import qualified SparseMonom as M
 import qualified RingParams as RP
 import PolyParsers (Readable(..), polyTupleListFromString, polyListToString)
 
+-- | A commutative polynomial
+newtype Polynomial :: RP.Ring -> Nat -> RP.MonOrder -> * where
+    MakePoly :: { monMap :: Map.Map (Mon n o) (Coef r) } -> Polynomial r n o
+
 -- Type synonyms
 type Coef = C.Coefficient
 type Mon = M.Monomial
 type Poly = Polynomial
-
--- | A commutative polynomial
-newtype Polynomial :: RP.Ring -> Nat -> RP.MonOrder -> * where
-    MakePoly :: { monMap :: Map.Map (Mon n o) (Coef r) } -> Polynomial r n o
 
 makePoly :: Num (Coef r) => Map.Map (Mon n o) (Coef r) -> Poly r n o
 makePoly = MakePoly . Map.filter (/= 0)

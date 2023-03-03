@@ -13,17 +13,20 @@ import Data.Ratio ((%), numerator, denominator)
 import qualified RingParams as RP
 import PolyParsers (Readable(..), ratFromString, ratToString)
 
--- Type synonyms
-type Q = Coefficient RP.Q
-type Fp = Coefficient RP.Fp
---type Fq = Coefficient RP.Fq
-
 -- | A coefficient in a polynomial ring
 data Coefficient :: RP.Ring -> * where
     Q :: Rational -> Coefficient r
-    Fp :: Coefficient r
---    Fq :: Integer -> Coefficient r
+    Zero :: Coefficient r
+    FTwo :: Integer -> Coefficient r
+    FThree :: Integer -> Coefficient r
     deriving Eq
+
+-- Type synonyms
+type Q = Coefficient RP.Q
+type Zero = Coefficient RP.Zero
+type FTwo = Coefficient RP.FTwo
+type FThree = Coefficient RP.FThree
+--type FTwo = Coefficient (RP.F 2)
 
 instance Show Q where
     show (Q r) = ratToString r
@@ -46,37 +49,57 @@ instance Fractional Q where
 instance Readable Q where
     fromString = Q . ratFromString
 
-instance Show Fp where
-    show _ = show RP.Fp
+instance Show Zero where
+    show _ = show RP.Zero
 
-instance Num Fp where
-    a + b         = Fp
-    a - b         = Fp
-    a * b         = Fp
-    abs a         = Fp
-    signum a      = Fp
-    fromInteger n = Fp
+instance Num Zero where
+    a + b         = Zero
+    a - b         = Zero
+    a * b         = Zero
+    abs a         = Zero
+    signum a      = Zero
+    fromInteger n = Zero
 
-instance Fractional Fp where
-    recip a        = Fp
-    fromRational a = Fp
+instance Fractional Zero where
+    recip a        = error "Cannot divide by zero."
+    fromRational a = Zero
 
-instance Readable Fp where
-    fromString s = Fp
+instance Readable Zero where
+    fromString s = Zero
 
---deriving instance Show Fq
+instance Show FTwo where
+    show (FTwo n) = show n
 
---instance Num Fq where
---    (Fq r) + (Fq s) = Fq ((r + s) `mod` 2)
---    (Fq r) - (Fq s) = Fq ((r - s) `mod` 2)
---    (Fq r) * (Fq s) = Fq ((r * s) `mod` 2)
---    abs (Fq r)     = Fq (abs r)
---    signum (Fq r)  = Fq (signum r)
---    fromInteger n = Fq $ n `mod` 2
+instance Num FTwo where
+    (FTwo n) + (FTwo m) = FTwo ((n + m) `mod` 2)
+    (FTwo n) - (FTwo m) = FTwo ((n - m) `mod` 2)
+    (FTwo n) * (FTwo m) = FTwo ((n * m) `mod` 2)
+    abs (FTwo n)     = FTwo (abs n)
+    signum (FTwo n)  = FTwo (signum n)
+    fromInteger n = FTwo $ n `mod` 2
 
---instance Fractional Fq where
---    recip 1        = Fq 1
---    fromRational a = fromInteger (numerator a) * recip (fromInteger (denominator a))
+instance Fractional FTwo where
+    recip 1        = FTwo 1
+    fromRational a = fromInteger (numerator a) * recip (fromInteger (denominator a))
 
---instance Readable Fq where
---    fromString = Fq . read
+instance Readable FTwo where
+    fromString = FTwo . read
+
+instance Show FThree where
+    show (FThree n) = show n
+
+instance Num FThree where
+    (FThree n) + (FThree m) = FThree ((n + m) `mod` 3)
+    (FThree n) - (FThree m) = FThree ((n - m) `mod` 3)
+    (FThree n) * (FThree m) = FThree ((n * m) `mod` 3)
+    abs (FThree n)     = FThree (abs n)
+    signum (FThree n)  = FThree (signum n)
+    fromInteger n = FThree $ n `mod` 3
+
+instance Fractional FThree where
+    recip 1        = FThree 1
+    recip 2        = FThree 2
+    fromRational a = fromInteger (numerator a) * recip (fromInteger (denominator a))
+
+instance Readable FThree where
+    fromString = FThree . read

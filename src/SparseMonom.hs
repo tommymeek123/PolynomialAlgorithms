@@ -25,12 +25,12 @@ import qualified RingParams as RP
 import PolyParsers (Readable(..), monMapFromString, monListToString)
 import Debug.Trace (trace, traceShow)
 
--- Type synonym
-type Mon = Monomial
-
 -- | A commutative monomial. Exponents are stored in an IntMap.
 newtype Monomial :: Nat -> RP.MonOrder -> * where
     MakeMon :: { degMap :: IMap.IntMap Int } -> Monomial n o deriving Eq
+
+-- Type synonym
+type Mon = Monomial
 
 makeMon :: IMap.IntMap Int -> Mon n o
 makeMon = MakeMon . IMap.filterWithKey (\_ exp -> exp /= 0)
@@ -47,9 +47,10 @@ compList :: [(Int,Int)] -> [(Int,Int)] -> Ordering
 compList [] [] = EQ
 compList _ [] = GT
 compList [] _ = LT
-compList ((n1,e1):vars1) ((n2,e2):vars2) | n1 /= n2 = n2 `compare` n1
-                                         | e1 /= e2 = e1 `compare` e2
-                                         | otherwise = vars1 `compList` vars2
+compList ((n1,e1):vars1) ((n2,e2):vars2)
+    | n1 /= n2 = n2 `compare` n1
+    | e1 /= e2 = e1 `compare` e2
+    | otherwise = vars1 `compList` vars2
 
 instance Ord (Mon n RP.Lex) where
     compare = lexCompare
@@ -88,9 +89,9 @@ divides :: Mon n o -> Mon n o -> Bool
 a `divides` b = all (`varDivides` (degList b)) (degList a)
     where degList = IMap.assocs . degMap
           varDivides _ [] = False
-          varDivides (n1,e1) ((n2,e2):vars) = if n1 > n2
-                                              then varDivides (n1,e1) vars
-                                              else n1 == n2 && e1 <= e2
+          varDivides (n1,e1) ((n2,e2):vars)
+              | n1 > n2 = varDivides (n1,e1) vars
+              | otherwise = n1 == n2 && e1 <= e2
 
 -- | Given monomials b and a, returns a monomial d such that b = ad
 divideBy :: Mon n o -> Mon n o -> Maybe (Mon n o)

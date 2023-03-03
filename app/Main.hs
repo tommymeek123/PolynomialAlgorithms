@@ -15,7 +15,7 @@ import PolyParsers (Readable(..))
 type R = P.Polynomial RP.Q 2 RP.GLex
 type S = P.Polynomial RP.Q 4 RP.GRevLex
 type T = P.Polynomial RP.Q 5 RP.Lex
-type U = P.Polynomial RP.Q 3 RP.Lex
+type U = P.Polynomial RP.Q 3 RP.GLex
 
 main :: IO ()
 main = do
@@ -82,7 +82,7 @@ main = do
 
     print $ map P.numTerms gbi
     print $ map P.totalDegree gbi
---    putStrLn $ "GB <i1,i2> = " ++ (formatSS . show) gbi
+    putStrLn $ "GB <i1,i2> = " ++ (formatSS . show) gbi
 
 --main :: IO ()
 --main = do

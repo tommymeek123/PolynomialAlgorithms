@@ -27,7 +27,7 @@ type Poly = P.Polynomial
 -- | Returns a list of quotients and a remainder that result from division.
 longDiv :: (Ord (Mon n o), Fractional (Coef r), Arity n)
            => Poly r n o -> [Poly r n o] -> ([Poly r n o], Poly r n o)
-longDiv f gs = lastTwo $ outerLoop gs (f, take (length gs) (repeat 0), 0)
+longDiv f gs = lastTwo $ outerLoop gs (f, replicate (length gs) 0, 0)
     where lastTwo (a, b, c) = (b, c)
           outerLoop _ (0, qs, r) = (0, qs, r)
           outerLoop gs (p, qs, r) = outerLoop gs $ innerLoop gs (p, qs, r)

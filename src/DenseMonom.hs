@@ -25,12 +25,12 @@ import qualified Data.Vector.Fixed.Unboxed as UV
 import qualified RingParams as RP
 import PolyParsers (Readable(..), monListFromString, monListToString)
 
--- Type synonym
-type Mon = Monomial
-
 -- | A commutative monomial. Exponents are stored in a fixed length vector.
 newtype Monomial :: Nat -> RP.MonOrder -> * where
     MakeMon :: { degVec :: UV.Vec n Int } -> Monomial n o
+
+-- Type synonym
+type Mon = Monomial
 
 deriving instance V.Arity n => Eq (Mon n o)
 
@@ -58,7 +58,7 @@ instance V.Arity n => Semigroup (Mon n o) where
     a <> b = MakeMon $ V.zipWith (+) (degVec a) (degVec b)
 
 instance V.Arity n => Monoid (Mon n o) where
-    mempty = MakeMon $ V.fromList' $ take nn (repeat 0)
+    mempty = MakeMon $ V.fromList' $ replicate nn 0
         where nn = (fromInteger . reflect) (Proxy :: Proxy n)
 
 instance V.Arity n => Readable (Mon n o) where
