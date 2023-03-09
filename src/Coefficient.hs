@@ -26,7 +26,6 @@ type Q = Coefficient RP.Q
 type Zero = Coefficient RP.Zero
 type FTwo = Coefficient RP.FTwo
 type FThree = Coefficient RP.FThree
---type FTwo = Coefficient (RP.F 2)
 
 instance Show Q where
     show (Q r) = ratToString r

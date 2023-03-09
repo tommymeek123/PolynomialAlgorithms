@@ -91,11 +91,32 @@ basis fs = if fs == gs then fs else basis gs
                     r = fromMaybe 0 (P.sPoly g1 g2) /% gs
                     newPoly = if r /= 0 then [P.normalize r] else []
 
+-- Determine which new S-pairs to calculate during Buchberger's algorithm.
 newPairs :: (Ord (Mon n o), Num (Coef r), Arity n)
             => Poly r n o -> [Poly r n o] -> [(Int,Int)]
 newPairs 0 gs = []
 newPairs r gs = [(m,length gs - 1) | m <- [0..length gs - 2]]
 --    where coprime g = r `P.leadTermCoprime` (gs !! g)
+
+{--
+-- | Implementation of Buchburger's algorithm to find a Groebner basis.
+basis :: (Ord (Mon n o), Fractional (Coef r), Arity n) => [Poly r n o] -> [Poly r n o]
+basis fs = if fs == gs then fs else basis gs
+    where startingPairs = [(g1,g2) | g1 <- fs, g2 <- fs, g1 /= g2]
+          gs = cycle1 (startingPairs, fs)
+          cycle1 ([], gs) = gs
+          cycle1 (pairs, gs) = cycle1 (tail pairs ++ newPairs r gs, gs ++ newPoly)
+              where g1 = fst (head pairs)
+                    g2 = snd (head pairs)
+                    r = fromMaybe 0 (P.sPoly g1 g2) /% gs
+                    newPoly = if r /= 0 then [P.normalize r] else []
+
+newPairs :: (Ord (Mon n o), Num (Coef r), Arity n)
+            => Poly r n o -> [Poly r n o] -> [(Poly r n o, Poly r n o)]
+newPairs 0 gs = []
+newPairs r gs = [(r,g) | g <- gs, coprime g]
+    where coprime g = r `P.leadTermCoprime` g
+--}
 
 -- | Implementation of Buchburger's algorithm to find a reduced Groebner basis.
 gb :: (Ord (Mon n o), Fractional (Coef r), Arity n) => [Poly r n o] -> [Poly r n o]
@@ -112,18 +133,20 @@ gs `isBasisOf` fs = all (==0) [f /% gs | f <- fs]
 isGB :: (Ord (Mon n o), Fractional (Coef r), Arity n) => [Poly r n o] -> Bool
 isGB gs = all (==0) [fromMaybe 0 (P.sPoly g1 g2) /% gs | g1 <- gs, g2 <- gs, g1 /= g2]
 
+{--
 -- | Given a Grobner basis gs, determines if gs is reduced.
---isReduced :: Num (Coef r) => [Poly r n o] -> Bool
---isReduced gs = normalized && independent
---    where normalized = all (==Just 1) (map P.leadCoef gs)
---          independent = True
+isReduced :: Num (Coef r) => [Poly r n o] -> Bool
+isReduced gs = normalized && independent
+    where normalized = all (==Just 1) (map P.leadCoef gs)
+          independent = True
 
---          independent = not (or (map anyMonomInLTIdeal gs))
---          anyMonomInLTIdeal = P.pfoldr (\m b -> thisMonomInLTIdeal m || b) False
---          thisMonomInLTIdeal m = any thing m
---          thing m = [fromMaybe False M.divides <$> Just m <*> P.leadMonom g | g <- gs]
+          independent = not (or (map anyMonomInLTIdeal gs))
+          anyMonomInLTIdeal = P.pfoldr (\m b -> thisMonomInLTIdeal m || b) False
+          thisMonomInLTIdeal m = any thing m
+          thing m = [fromMaybe False M.divides <$> Just m <*> P.leadMonom g | g <- gs]
 
 
---          check1 0 = True
---          check1 f = fromMaybe 1 (P.leadMonom f) `k` check1 (P.dropLeadTerm f)
---          m `k` go = not (and (map (`M.divides` m) gs)) && go
+          check1 0 = True
+          check1 f = fromMaybe 1 (P.leadMonom f) `k` check1 (P.dropLeadTerm f)
+          m `k` go = not (and (map (`M.divides` m) gs)) && go
+--}

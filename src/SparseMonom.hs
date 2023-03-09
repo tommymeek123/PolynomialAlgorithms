@@ -52,6 +52,25 @@ compList ((n1,e1):vars1) ((n2,e2):vars2)
     | e1 /= e2 = e1 `compare` e2
     | otherwise = vars1 `compList` vars2
 
+{--
+lexCompare :: forall n o. Arity n => Mon n o -> Mon n o -> Ordering
+a `lexCompare` b = compMap [1..nn] (degMap a) (degMap b)
+    where nn = (fromInteger . reflect) (Proxy :: Proxy n)
+
+revLexCompare :: forall n o. Arity n => Mon n o -> Mon n o -> Ordering
+a `revLexCompare` b = compMap [nn,nn-1..1] (degMap b) (degMap a)
+    where nn = (fromInteger . reflect) (Proxy :: Proxy n)
+
+compMap :: [Int] -> IMap.IntMap Int -> IMap.IntMap Int -> Ordering
+compMap js m1 m2 = foldl (compExp m1 m2) EQ js
+
+compExp :: IMap.IntMap Int -> IMap.IntMap Int -> Ordering -> Int -> Ordering
+compExp m1 m2 EQ n = compare e1 e2
+    where e1 = fromMaybe 0 (m1 IMap.!? n)
+          e2 = fromMaybe 0 (m2 IMap.!? n)
+compExp _ _ a _ = a
+--}
+
 instance Ord (Mon n RP.Lex) where
     compare = lexCompare
 
@@ -77,12 +96,12 @@ instance Monoid (Mon n o) where
     mempty = MakeMon $ IMap.empty
 
 instance Arity n => Readable (Mon n o) where
-    fromString = MakeMon . monMapFromString nn
+    fromString = makeMon . monMapFromString nn
         where nn = (fromInteger . reflect) (Proxy :: Proxy n)
 
 -- | Determine if two monomials are relatively prime.
 coprime :: Mon n o -> Mon n o -> Bool
-a `coprime` b = gcdMon a b == mempty
+a `coprime` b = a `gcdMon` b == mempty
 
 -- | Determines if the first argument divides the second argument
 divides :: Mon n o -> Mon n o -> Bool

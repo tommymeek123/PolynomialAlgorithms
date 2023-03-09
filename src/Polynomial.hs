@@ -68,16 +68,6 @@ instance (Ord (Mon n o), Readable (Mon n o), Num (Coef r), Readable (Coef r))
                . map (\(ms,cs) -> (fromString ms, fromString cs))
                . polyTupleListFromString
 
---instance (Ord (Mon n o), Num (Coef r), Arity n) => Num (Poly r n o) where
---    f + g = makePoly $ Map.unionWith (+) (monMap f) (monMap g)
---    f * g = if numTerms f > numTerms g then f `leftPolyMult` g else g `leftPolyMult` f
---        where leftPolyMult f g = Map.foldrWithKey (distributeOver f) 0 (monMap g)
---              distributeOver f m c = (+) (leftMultWithCoef m c f)
---    abs = id
---    signum _ = 1
---    fromInteger n = makePoly $ Map.singleton mempty (fromInteger n)
---    negate = makePoly . Map.map negate . monMap
-
 instance (Ord (Mon n o), Num (Coef r), Arity n) => Num (Poly r n o) where
     f + g = makePoly $ Map.unionWith (+) (monMap f) (monMap g)
     f * g = if numTerms f < numTerms g then f `leftPolyMult` g else g `leftPolyMult` f
@@ -120,8 +110,8 @@ leadMonomAsPoly f = case leadMonom f of
     Nothing -> Nothing
 
 -- | The lead term of a polynomial.
-leadTerm :: Num (Coef r) => Poly r n o -> Maybe (Poly r n o)
-leadTerm f = (makePoly .: Map.singleton) <$> (leadMonom f) <*> (leadCoef f) -- TODO: Memoize this
+leadTerm :: Num (Coef r) => Poly r n o -> Maybe (Poly r n o) -- TODO: Memoize this
+leadTerm f = (makePoly .: Map.singleton) <$> (leadMonom f) <*> (leadCoef f)
 
 -- | Determine if the lead terms of two polynomials are relatively prime.
 leadTermCoprime :: Arity n => Poly r n o -> Poly r n o -> Bool
