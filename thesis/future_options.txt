@@ -1,0 +1,12 @@
+Use the state monad in the algorithms.
+Make the low level operations strict.
+Use type families to:
+    Implement an Fp type.
+    Make Monomial a type family.
+    Turn Polynomial into a bifunctor.
+Write a test suite.
+Memoize the lead term of Polynomial.
+Implement the read typeclass.
+Implement noncommutative monomials.
+Implement recursive version of the F4 algorithm.
+Parallelize the F4 algorithm.
