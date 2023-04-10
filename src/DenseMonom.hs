@@ -17,7 +17,7 @@ module DenseMonom ( Monomial
                   , totalDegree
                   ) where
 
-import GHC.TypeLits (Symbol, Nat, KnownNat)
+import GHC.TypeLits (Nat)
 import Data.Proxy (Proxy(..))
 import Data.Reflection (reflect)
 import qualified Data.Vector.Fixed as V
@@ -45,8 +45,8 @@ instance V.Arity n => Ord (Mon n RP.GLex) where
 
 instance V.Arity n => Ord (Mon n RP.GRevLex) where
     compare a b = let aVb = compare (totalDegree a) (totalDegree b)
-                      a' = V.reverse $ degVec a
-                      b' = V.reverse $ degVec b
+                      a'  = V.reverse $ degVec a
+                      b'  = V.reverse $ degVec b
                   in  if aVb == EQ
                       then compare b' a'
                       else aVb
@@ -62,8 +62,8 @@ instance V.Arity n => Monoid (Mon n o) where
         where nn = (fromInteger . reflect) (Proxy :: Proxy n)
 
 instance V.Arity n => Readable (Mon n o) where
-    fromString = MakeMon . V.fromList' . monListFromString nn
-        where nn = (fromInteger . reflect) (Proxy :: Proxy n)
+    fromString = MakeMon . V.fromList' . monListFromString nn where
+        nn = (fromInteger . reflect) (Proxy :: Proxy n)
 
 -- | Determine if two monomials are relatively prime.
 coprime :: V.Arity n => Mon n o -> Mon n o -> Bool
@@ -75,8 +75,8 @@ a `divides` b = V.and $ V.zipWith (<=) (degVec a) (degVec b)
 
 -- | Given monomials a and b, returns a monomial d such that a = bd
 divideBy :: V.Arity n => Mon n o -> Mon n o -> Maybe (Mon n o)
-divideBy a b = if V.any (< 0) diff then Nothing else Just (MakeMon diff)
-    where diff = V.zipWith (-) (degVec a) (degVec b)
+divideBy a b = if V.any (< 0) diff then Nothing else Just (MakeMon diff) where
+    diff = V.zipWith (-) (degVec a) (degVec b)
 
 -- | Creates a monomial from a list of exponents.
 fromList :: V.Arity n => [Int] -> Mon n o

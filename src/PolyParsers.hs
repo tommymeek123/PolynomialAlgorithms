@@ -50,9 +50,9 @@ ratToString r = if d == 1
 {- | Convert a string representing a monomial to a list of Ints representing
 the exponents. Example: "x_1^3x_3^7x_6" becomes [3,0,7,0,0,1]. -}
 monListFromString :: Int -> String -> [Int]
-monListFromString n = foldl insertTuple zeros . monTupleListFromString n
-    where insertTuple degs (i,deg) = setAt (i-1) deg degs
-          zeros = replicate n 0
+monListFromString n = foldl insertTuple zeros . monTupleListFromString n where
+    insertTuple degs (i,deg) = setAt (i-1) deg degs
+    zeros = replicate n 0
 
 {- | Convert a string representing a monomial to an IntMap from the position
 of the variable to the exponent of that variable. Example: "x_1^3x_3^7x_6"
@@ -68,11 +68,11 @@ monTupleListFromString n s = filter (\(k,v) -> k <= n)
     . map (\s -> (k s, v s))
     . filter (not . null)
     . splitOn "x_"
-    . filter (not . isSpace) $ s
-    where k s = (read . takeWhile (/= '^')) s
-          v s = if '^' `elem` s
-                then (read . tail . dropWhile (/= '^')) s
-                else 1
+    . filter (not . isSpace) $ s where
+        k s = (read . takeWhile (/= '^')) s
+        v s = if '^' `elem` s
+              then (read . tail . dropWhile (/= '^')) s
+              else 1
 
 -- | Convert the exponent list of a monomial to a string. Inverse of monListFromString.
 monListToString :: [Int] -> String
