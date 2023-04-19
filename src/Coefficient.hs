@@ -9,7 +9,6 @@
 module Coefficient ( Coefficient ) where
 
 import Data.Ratio ((%), numerator, denominator)
---import Control.DeepSeq (NFData, rnf)
 import qualified RingParams as RP
 import PolyParsers (Readable(..), ratFromString, ratToString)
 
@@ -31,9 +30,6 @@ type FFive  = Coefficient RP.FFive
 
 instance Show Q where
     show (Q r) = ratToString r
-
---instance NFData Field where
---    rnf (Q a) = rnf a
 
 instance Num Q where
     (Q r) + (Q s) = Q (r + s)
@@ -87,7 +83,8 @@ instance Fractional FTwo where
         q = fromInteger (denominator n)
 
 instance Readable FTwo where
-    fromString = FTwo . (`mod` 2) . read
+    fromString "" = FTwo 1
+    fromString s  = (FTwo . (`mod` 2) . read) s
 
 instance Show FThree where
     show (FThree n) = show n
@@ -109,7 +106,8 @@ instance Fractional FThree where
         q = fromInteger (denominator n)
 
 instance Readable FThree where
-    fromString = FThree . (`mod` 3) . read
+    fromString "" = FThree 1
+    fromString s  = (FThree . (`mod` 3) . read) s
 
 instance Show FFive where
     show (FFive n) = show n
@@ -133,4 +131,5 @@ instance Fractional FFive where
         q = fromInteger (denominator n)
 
 instance Readable FFive where
-    fromString = FFive . (`mod` 5) . read
+    fromString "" = FFive 1
+    fromString s  = (FFive . (`mod` 5) . read) s

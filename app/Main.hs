@@ -19,8 +19,7 @@ type U = P.Polynomial RP.Q 3 RP.GLex
 
 main :: IO ()
 main = do
-    let
-        f1 = P.fromMap $ Map.fromList [([3,0],"1"), ([1,1],"-2")] :: R
+    let f1 = P.fromMap $ Map.fromList [([3,0],"1"), ([1,1],"-2")] :: R
         f2 = P.fromMap $ Map.fromList [([2,1],"1"), ([0,2],"-2"), ([1,0],"1")] :: R
         f3 = P.fromMap $ Map.fromList [([2,0],"-1")] :: R
         f4 = P.fromMap $ Map.fromList [([1,1],"-2")] :: R
@@ -32,14 +31,15 @@ main = do
         h1 = P.fromMap $ Map.fromList [([0,0,1,0,0],"1"), ([1,0,0,0,0],"-1"), ([0,1,0,0,0],"-1")] :: T
         h2 = P.fromMap $ Map.fromList [([0,0,0,1,0],"1"), ([2,0,0,0,0],"-1"), ([1,1,0,0,0],"-2")] :: T
         h3 = P.fromMap $ Map.fromList [([0,0,0,0,1],"1"), ([3,0,0,0,0],"-1"), ([2,1,0,0,0],"-3")] :: T
-        i1 = P.fromMap $ Map.fromList [([5,0,0],"1"), ([0,4,0],"1"), ([0,0,3],"1"), ([0,0,0],"-1")] :: U
-        i2 = P.fromMap $ Map.fromList [([3,0,0],"1"), ([0,3,0],"1"), ([0,0,2],"1"), ([0,0,0],"-1")] :: U
+        i1string = "x_1^5 + x_2^4 + x_3^3 - 1"
+        i2string = "x_1^3 + x_2^3 + x_3^2 - 1"
+        i1 = (fromString i1string) :: U
+        i2 = (fromString i2string) :: U
         fs = [f1,f2,f3,f4,f5]
         gbf = gb [f1,f2]
         gbg = gb [g1,g2,g3]
         gbh = gb [h1,h2,h3]
         gbi = gb [i1,i2]
-
     print $ gbf `isBasisOf` [f1,f2]
     print $ isGB gbf
     print $ gbg `isBasisOf` [g1,g2,g3]
@@ -48,6 +48,9 @@ main = do
     print $ isGB gbh
     print $ gbi `isBasisOf` [i1,i2]
     print $ isGB gbi
-
+    putStrLn $ "i1 + i2 = " ++ (formatSS . show $ i1 + i2)
+    putStrLn $ "i1 * i2 = " ++ (formatSS . show $ i1 * i2)
+    putStrLn $ "S-poly of i1,i2 = " ++ (formatSS . show $ P.sPoly i1  i2)
     print $ map P.numTerms gbi
     print $ map P.totalDegree gbi
+    putStrLn $ "GB <i1,i2> = " ++ (formatSS . show) gbi

@@ -75,7 +75,7 @@ a `divides` b = V.and $ V.zipWith (<=) (degVec a) (degVec b)
 
 -- | Given monomials a and b, returns a monomial d such that a = bd
 divideBy :: V.Arity n => Mon n o -> Mon n o -> Maybe (Mon n o)
-divideBy a b = if V.any (< 0) diff then Nothing else Just (MakeMon diff) where
+a `divideBy` b = if V.any (< 0) diff then Nothing else Just (MakeMon diff) where
     diff = V.zipWith (-) (degVec a) (degVec b)
 
 -- | Creates a monomial from a list of exponents.
